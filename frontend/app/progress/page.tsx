@@ -110,7 +110,7 @@ function ProgressInner() {
                       <stop offset="100%" stopColor="#2f6b46" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,118,110,.22)" vertical={false} />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
                   <YAxis domain={["dataMin - 1", "dataMax + 1"]} allowDecimals={false} tickLine={false}
                     axisLine={false} width={34} fontSize={12} tickFormatter={(v) => `${Math.round(v)}`} />

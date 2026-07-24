@@ -10,7 +10,9 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import User
 from ..ratelimit import limit
-from ..schemas import AuthStatus, LoginIn, SignupIn, UserOut
+from ..schemas import (
+    AuthStatus, LoginIn, PasswordChangeIn, ProfileUpdateIn, SignupIn, UserOut,
+)
 from ..security import get_current_user, hash_password, verify_password
 
 logger = logging.getLogger("nutrifit.auth")
@@ -70,3 +72,38 @@ def me(request: Request, db: Session = Depends(get_db)):
         request.session.clear()
         return AuthStatus(authenticated=False)
     return AuthStatus(authenticated=True, user=_user_out(user))
+
+
+@router.patch("/me")
+def update_profile(payload: ProfileUpdateIn, user: User = Depends(get_current_user),
+                   db: Session = Depends(get_db)):
+    if payload.name is not None:
+        name = payload.name.strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="Name cannot be empty.")
+        user.full_name = name
+    if payload.phone is not None:
+        user.phone = payload.phone.strip() or None
+    db.commit()
+    db.refresh(user)
+    return {"success": True, "user": _user_out(user)}
+
+
+@router.post("/change-password")
+@limit("10/hour")
+def change_password(request: Request, payload: PasswordChangeIn,
+                    user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect.")
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
+    return {"success": True, "message": "Password updated."}
+
+
+@router.delete("/account")
+def delete_account(request: Request, user: User = Depends(get_current_user),
+                   db: Session = Depends(get_db)):
+    db.delete(user)  # weight logs cascade via relationship
+    db.commit()
+    request.session.clear()
+    return {"success": True, "message": "Account deleted."}

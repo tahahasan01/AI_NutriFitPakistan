@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -13,9 +14,18 @@ const config: Config = {
         display: ["var(--font-fraunces)", "Georgia", "serif"],
       },
       colors: {
-        // Warm paper background system
-        paper: { DEFAULT: "#FBF8F1", warm: "#F4EEE1", card: "#FFFDF8" },
-        ink: { DEFAULT: "#1B1A15", soft: "#3D3A31", muted: "#7C766A", faint: "#A8A296" },
+        // Warm paper system — CSS-variable driven so it flips in dark mode
+        paper: {
+          DEFAULT: "rgb(var(--paper) / <alpha-value>)",
+          warm: "rgb(var(--paper-warm) / <alpha-value>)",
+          card: "rgb(var(--paper-card) / <alpha-value>)",
+        },
+        ink: {
+          DEFAULT: "rgb(var(--ink) / <alpha-value>)",
+          soft: "rgb(var(--ink-soft) / <alpha-value>)",
+          muted: "rgb(var(--ink-muted) / <alpha-value>)",
+          faint: "rgb(var(--ink-faint) / <alpha-value>)",
+        },
         // Dominant: deep pine green
         brand: {
           50: "#eef4ef", 100: "#d6e7da", 200: "#aecfb6", 300: "#7db28c",

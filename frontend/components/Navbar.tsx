@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Salad, Dumbbell, LineChart, LogOut, Leaf, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/app/providers";
+import { usePrefs } from "@/components/PrefsProvider";
+import { Avatar } from "@/components/Avatar";
 
 const links = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -14,6 +16,7 @@ const links = [
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { avatar } = usePrefs();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -50,10 +53,17 @@ export function Navbar() {
               );
             })}
           {user ? (
-            <button onClick={handleLogout} className="btn-ghost ml-1 px-3 py-1.5">
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Log out</span>
-            </button>
+            <>
+              <Link href="/settings" title="Settings"
+                className={`ml-1 rounded-full ring-2 transition ${
+                  pathname === "/settings" ? "ring-brand-500" : "ring-transparent hover:ring-ink/15"}`}>
+                <Avatar src={avatar} name={user.name} size={34} />
+              </Link>
+              <button onClick={handleLogout} className="btn-ghost ml-1 px-3 py-1.5">
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Log out</span>
+              </button>
+            </>
           ) : (
             <>
               <Link href="/login" className="btn-ghost px-4 py-2">Log in</Link>
