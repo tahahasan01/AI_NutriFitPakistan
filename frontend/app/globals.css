@@ -3,15 +3,15 @@
 @tailwind utilities;
 
 @layer base {
-  /* Light: clean neutral white */
+  /* Light: warm cream */
   :root {
-    --paper: 250 250 249;
-    --paper-warm: 242 242 241;
+    --paper: 253 249 244;
+    --paper-warm: 249 241 233;
     --paper-card: 255 255 255;
-    --ink: 24 24 27;
-    --ink-soft: 58 58 63;
-    --ink-muted: 118 118 126;
-    --ink-faint: 165 165 173;
+    --ink: 28 23 20;
+    --ink-soft: 62 54 49;
+    --ink-muted: 124 112 105;
+    --ink-faint: 172 160 152;
   }
   /* Dark: neutral graphite (workout-app default), red used only as accent */
   .dark {
@@ -28,10 +28,14 @@
   body {
     @apply bg-paper text-ink;
     min-height: 100vh;
+    overflow-x: clip;
     background-color: rgb(var(--paper));
     background-image:
-      radial-gradient(820px 460px at 95% -12%, rgba(242,84,45,.13), transparent 62%),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+      radial-gradient(1000px 620px at 100% -8%, rgba(242,84,45,.16), transparent 60%),
+      radial-gradient(780px 560px at -6% 6%, rgba(247,166,58,.14), transparent 55%),
+      radial-gradient(720px 620px at 55% 118%, rgba(242,84,45,.07), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.02'/%3E%3C/svg%3E");
+    background-attachment: fixed;
   }
   h1, h2, h3 { @apply font-display tracking-tight; }
 }
@@ -49,9 +53,14 @@
   .btn-primary {
     @apply btn bg-brand-600 text-white hover:bg-brand-700 hover:-translate-y-0.5;
   }
-  /* the loud CTA = ember pop */
+  /* the loud CTA = flame gradient */
   .btn-accent {
-    @apply btn bg-ember-500 text-white hover:bg-ember-400 hover:-translate-y-0.5 shadow-soft;
+    @apply btn text-white shadow-soft hover:-translate-y-0.5;
+    background-image: linear-gradient(135deg, #f2542d 0%, #f7853a 55%, #f7a63a 100%);
+  }
+  .btn-accent:hover:not(:disabled) { filter: brightness(1.05); }
+  .text-flame {
+    @apply bg-gradient-to-r from-brand-500 via-brand-500 to-ember-500 bg-clip-text text-transparent;
   }
   .btn-ghost {
     @apply btn border border-ink/15 bg-paper-card/70 text-ink-soft hover:border-ink/30 hover:-translate-y-0.5;

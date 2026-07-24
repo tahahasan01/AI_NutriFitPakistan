@@ -37,6 +37,8 @@ const config: Config = {
           50: "#fff8ed", 100: "#ffefd0", 200: "#fddba1", 300: "#fcc267",
           400: "#f7a63a", 500: "#ef8b1a", 600: "#d47110", 700: "#b05a10",
         },
+        // Brand logo green (kept from the original identity)
+        leaf: { 300: "#7db28c", 400: "#4f9066", 500: "#2f6b46", 600: "#245538", 700: "#1c442e" },
         // Fixed dark panel surface (dark in BOTH themes)
         night: { DEFAULT: "#17181c", soft: "#1f2026", ring: "#2a2b32" },
         saffron: { 50: "#fdf6e9", 100: "#f9e7c2", 200: "#f0c977", 300: "#e8a317", 400: "#c9860c" },

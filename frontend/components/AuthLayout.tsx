@@ -28,10 +28,10 @@ export function AuthLayout({
       <div className="relative hidden flex-col justify-between overflow-hidden bg-night p-8 text-white md:flex">
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-ember-400/15 blur-3xl" />
         <Link href="/" className="relative flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-ember-400 ring-1 ring-brand-500">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-leaf-600 text-white ring-1 ring-leaf-700">
             <Leaf className="h-5 w-5" />
           </span>
-          <span className="font-display text-xl font-semibold">NutriFit<span className="text-ember-400"> PK</span></span>
+          <span className="font-display text-xl font-semibold">NutriFit<span className="text-leaf-400"> PK</span></span>
         </Link>
         <div className="relative">
           <h2 className="font-display text-3xl font-semibold leading-tight">

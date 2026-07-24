@@ -82,7 +82,7 @@ export default function HomePage() {
           </span>
           <h1 className="mt-6 font-display text-[3.4rem] font-semibold leading-[1.02] sm:text-7xl">
             Eat well.<br />Train smart.<br />
-            <span className="italic text-brand-600">Actually</span> stick to it.
+            <span className="italic text-flame">Actually</span> stick to it.
           </h1>
           <p className="mt-7 max-w-lg text-lg leading-relaxed text-ink-soft animate-fade-up-1">
             Desi-first 7-day meal plans, home or gym workouts, and progress tracking —
@@ -105,24 +105,33 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Product preview */}
+        {/* Hero image + overlapping preview card */}
         <div className="relative animate-scale-in lg:justify-self-end">
-          <div aria-hidden className="absolute -right-4 -top-4 hidden rotate-3 rounded-2xl bg-ember-400 px-3 py-1.5 text-xs font-bold text-brand-800 shadow-soft sm:block">
-            Your plan, ready in 20s
+          <div className="overflow-hidden rounded-[1.75rem] shadow-lift ring-1 ring-ink/[.06]">
+            <img
+              src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=85&w=2400&auto=format&fit=crop"
+              alt="Fresh, balanced desi-friendly meals"
+              className="h-72 w-full object-cover sm:h-80 lg:h-[430px]"
+              loading="eager"
+            />
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent" />
+            <div aria-hidden className="absolute right-4 top-4 rotate-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-brand-600 shadow-soft backdrop-blur">
+              Ready in 20s
+            </div>
           </div>
-          <div className="card w-full max-w-md shadow-lift">
+          <div className="relative z-10 mx-3 -mt-14 card shadow-lift sm:mx-6">
             <div className="flex items-center justify-between">
               <div className="eyebrow">Your daily target</div>
               <span className="badge bg-brand-500/12 text-brand-500">Weight loss</span>
             </div>
             <div className="mt-4 flex items-center gap-5 border-b border-ink/[.07] pb-5">
-              <MacroDonut protein={165} carbs={193} fat={86} centerLabel="2205" centerSub="kcal / day" size={128} />
+              <MacroDonut protein={165} carbs={193} fat={86} centerLabel="2205" centerSub="kcal / day" size={120} />
               <MacroLegend protein={165} carbs={193} fat={86} />
             </div>
             <div className="mt-5 grid grid-cols-3 gap-2 text-center">
               {[["2594", "TDEE"], ["165g", "Protein"], ["7-day", "Plan"]].map(([v, l]) => (
                 <div key={l} className="rounded-xl bg-paper-warm px-2 py-3">
-                  <div className="font-display text-lg font-semibold text-brand-700">{v}</div>
+                  <div className="font-display text-lg font-semibold text-brand-600">{v}</div>
                   <div className="text-[11px] uppercase tracking-wide text-ink-muted">{l}</div>
                 </div>
               ))}
@@ -132,15 +141,17 @@ export default function HomePage() {
       </section>
 
       {/* ---------- STATS BAND ---------- */}
-      <section className="rounded-3xl border border-white/10 bg-night px-6 py-9 text-white shadow-lift">
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+      <section className="relative overflow-hidden rounded-3xl px-6 py-10 text-white shadow-lift"
+        style={{ backgroundImage: "linear-gradient(120deg, #cf2233 0%, #f2542d 45%, #f7a63a 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+        <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-4">
           {[
             ["150+", "Desi & global foods"], ["7-day", "Calorie-matched plans"],
             ["6-day", "Home or gym splits"], ["±6%", "vs USDA references"],
           ].map(([v, l]) => (
             <div key={l} className="text-center">
-              <div className="font-display text-3xl font-semibold text-ember-400 sm:text-5xl">{v}</div>
-              <div className="mt-1 text-sm text-white/65">{l}</div>
+              <div className="font-display text-3xl font-semibold sm:text-5xl">{v}</div>
+              <div className="mt-1 text-sm text-white/80">{l}</div>
             </div>
           ))}
         </div>
@@ -236,8 +247,11 @@ export default function HomePage() {
       </section>
 
       {/* ---------- BUILT FOR PAKISTAN ---------- */}
-      <section className="relative overflow-hidden rounded-3xl bg-night px-8 py-14 text-white shadow-lift">
-        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-ember-400/15 blur-3xl" />
+      <section className="relative overflow-hidden rounded-3xl px-8 py-16 text-white shadow-lift">
+        <img aria-hidden src="https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=85&w=2400&auto=format&fit=crop"
+          alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-night/95 via-night/90 to-brand-900/85" />
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-ember-400/20 blur-3xl" />
         <div className="relative mx-auto max-w-2xl text-center">
           <span className="badge bg-ember-400/15 text-ember-300 ring-1 ring-ember-400/20"><MapPin className="h-3.5 w-3.5" /> Built for Pakistan</span>
           <h2 className="mt-4 text-4xl font-semibold sm:text-5xl">Nutrition data that fits your plate.</h2>
@@ -278,7 +292,7 @@ export default function HomePage() {
 
       {/* ---------- FINAL CTA ---------- */}
       <section className="rounded-3xl border border-ink/[.07] bg-paper-card px-8 py-16 text-center shadow-soft">
-        <h2 className="text-4xl font-semibold sm:text-6xl">Start your plan <span className="italic text-brand-600">today</span>.</h2>
+        <h2 className="text-4xl font-semibold sm:text-6xl">Start your plan <span className="italic text-flame">today</span>.</h2>
         <p className="mx-auto mt-4 max-w-xl text-ink-muted">
           Join in under a minute and get a personalized 7-day meal plan and workout split.
         </p>
