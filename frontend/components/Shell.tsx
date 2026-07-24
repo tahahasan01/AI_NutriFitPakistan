@@ -38,8 +38,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <Sidebar open={open} onClose={() => setOpen(false)} collapsed={collapsed} />
 
       <div className={`transition-[padding] duration-300 ${collapsed ? "lg:pl-0" : "lg:pl-64"}`}>
-        {/* Top app bar */}
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-ink/[.06] bg-paper/80 px-4 backdrop-blur-md sm:px-6">
+        {/* Top app bar — full-width background, inner content aligned to the main column */}
+        <header className="sticky top-0 z-20 border-b border-ink/[.06] bg-paper/80 backdrop-blur-md">
+          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             {/* mobile: open drawer */}
             <button onClick={() => setOpen(true)} aria-label="Open menu"
@@ -74,6 +75,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <Link href="/settings" title="Account" className="ml-1">
               <Avatar src={avatar} name={user?.name} size={32} />
             </Link>
+          </div>
           </div>
         </header>
 
