@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Salad, Dumbbell, LineChart, Sparkles, ArrowRight, ArrowDown, Check, Flame,
   ShieldCheck, RefreshCw, MapPin, Utensils, Target, Gauge, ChevronDown, Star,
@@ -57,38 +58,15 @@ function Faq({ q, a }: { q: string; a: string }) {
 
 export default function HomePage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // Logged-in users go straight to their dashboard.
+  useEffect(() => {
+    if (!loading && user) router.replace("/dashboard");
+  }, [loading, user, router]);
 
   if (!loading && user) {
-    return (
-      <section className="animate-fade-up">
-        <div className="mb-8">
-          <h1 className="text-4xl font-semibold sm:text-5xl">
-            Welcome back, <span className="italic text-brand-600">{user.name?.split(" ")[0] || "athlete"}</span>.
-          </h1>
-          <p className="mt-2 text-ink-muted">Pick up where you left off.</p>
-        </div>
-        <div className="grid gap-5 sm:grid-cols-3">
-          {[
-            { href: "/diet", title: "Diet Plan", desc: "Generate this week's meals", icon: Salad },
-            { href: "/workout", title: "Workout", desc: "Build your training split", icon: Dumbbell },
-            { href: "/progress", title: "Progress", desc: "Log weight & see trends", icon: LineChart },
-          ].map((c) => (
-            <Link key={c.href} href={c.href} className="card card-hover group">
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
-                <c.icon className="h-5 w-5" />
-              </span>
-              <div className="mt-4 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold">{c.title}</div>
-                  <div className="text-sm text-ink-muted">{c.desc}</div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-ink-faint transition group-hover:translate-x-1 group-hover:text-brand-600" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-    );
+    return <div className="py-20 text-center text-ink-muted">Taking you to your dashboard…</div>;
   }
 
   return (

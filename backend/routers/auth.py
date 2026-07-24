@@ -51,7 +51,7 @@ def login(request: Request, payload: LoginIn, db: Session = Depends(get_db)):
                             detail="Invalid email or password")
     request.session["user_id"] = user.id
     return {"success": True, "message": "Login successful",
-            "user": _user_out(user), "redirect": "/diet"}
+            "user": _user_out(user), "redirect": "/dashboard"}
 
 
 @router.post("/logout")

@@ -19,7 +19,7 @@ export function AuthLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) router.replace("/diet");
+    if (!loading && user) router.replace("/dashboard");
   }, [loading, user, router]);
 
   return (

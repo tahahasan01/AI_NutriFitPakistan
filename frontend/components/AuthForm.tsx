@@ -22,7 +22,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     try {
       if (mode === "login") {
         await login(form.email, form.password);
-        router.push("/diet");
+        router.push("/dashboard");
       } else {
         await signup(form.name, form.email, form.phone, form.password);
         router.push("/login?new=1");
