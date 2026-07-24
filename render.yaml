@@ -1,0 +1,19 @@
+# Render.com blueprint for the FastAPI backend (one option among many hosts).
+# The Next.js frontend deploys separately on Vercel (set BACKEND_URL there to
+# this service's public URL).
+services:
+  - type: web
+    name: nutrifit-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NUTRIFIT_ENV
+        value: production
+      - key: NUTRIFIT_SECRET
+        generateValue: true      # Render generates a strong secret
+      - key: DATABASE_URL
+        sync: false              # set to your managed MySQL/Postgres URL
+      - key: CORS_ORIGINS
+        sync: false              # e.g. https://your-app.vercel.app (only if NOT using the Next proxy)
