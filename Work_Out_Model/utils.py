@@ -55,7 +55,7 @@ def prioritize_by_goal(df: pd.DataFrame, goal: str) -> pd.DataFrame:
         return df.assign(_met=met).sort_values(by=["_met"], ascending=False).drop(columns=["_met"]) if "_met" in df.columns else df.assign(_met=met).sort_values(by=["_met"], ascending=False)
     if goal == "Muscle Gain":
         mech = df.get("Mechanics", pd.Series([""] * len(df))).fillna("").astype(str).str.lower().eq("compound").astype(int)
-        diff_rank = df.get("Difficulty", pd.Series([""] * len(df))).fillna("").astype(str).str.lower().map({"beginner": 0, "intermediate": 1, "advanced": 2}).fillna(0).astype(int)
+        diff_rank = df.get("Difficulty", pd.Series([""] * len(df))).fillna("").astype(str).str.lower().map({"beginner": 0, "intermediate": 1, "advanced": 2, "expert": 2}).fillna(0).astype(int)
         return df.assign(is_compound=mech, diff_rank=diff_rank, _met=met).sort_values(by=["is_compound", "diff_rank", "_met"], ascending=[False, False, True]).drop(columns=["_met"])
     strength_mask = df.get("Type", pd.Series([""] * len(df))).fillna("").astype(str).str.contains("strength", case=False, na=False)
     cardio_mask = df.get("Type", pd.Series([""] * len(df))).fillna("").astype(str).str.contains("cardio", case=False, na=False)
@@ -67,13 +67,18 @@ def prioritize_by_goal(df: pd.DataFrame, goal: str) -> pd.DataFrame:
 
 
 def build_split() -> Dict[str, List[str]]:
+    # Muscle names MUST match the dataset's BodyPart vocabulary, otherwise
+    # pick_exercises() finds nothing and falls back to arbitrary exercises.
+    # Dataset vocab: Abdominals, Abductors, Adductors, Biceps, Calves, Chest,
+    # Forearms, Glutes, Hamstrings, Lats, Lower Back, Middle Back, Neck,
+    # Quadriceps, Shoulders, Traps, Triceps.
     return {
-        "Day 1": ["Chest", "Triceps"],
-        "Day 2": ["Back", "Biceps"],
-        "Day 3": ["Legs"],
-        "Day 4": ["Core", "Cardio"],
-        "Day 5": ["Upper"],
-        "Day 6": ["Full Body"],
+        "Day 1 — Push (Chest/Shoulders/Triceps)": ["Chest", "Shoulders", "Triceps"],
+        "Day 2 — Pull (Back/Biceps)": ["Lats", "Middle Back", "Lower Back", "Traps", "Biceps"],
+        "Day 3 — Legs": ["Quadriceps", "Hamstrings", "Glutes", "Calves", "Adductors", "Abductors"],
+        "Day 4 — Core": ["Abdominals"],
+        "Day 5 — Upper": ["Chest", "Shoulders", "Lats", "Biceps", "Triceps"],
+        "Day 6 — Full Body": ["Quadriceps", "Chest", "Lats", "Shoulders", "Hamstrings", "Abdominals"],
     }
 
 
