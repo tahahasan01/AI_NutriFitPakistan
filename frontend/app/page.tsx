@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Salad, Dumbbell, LineChart, Sparkles, ArrowRight, ArrowDown, Check, Flame,
-  ShieldCheck, RefreshCw, MapPin, Utensils, Target, Gauge, ChevronDown, Star,
+  ShieldCheck, RefreshCw, MapPin, Utensils, Target, Gauge, ChevronDown, Star, X, Minus,
 } from "lucide-react";
 import { useAuth } from "./providers";
 import { MacroDonut, MacroLegend } from "@/components/MacroDonut";
@@ -183,6 +183,31 @@ export default function HomePage() {
       </section>
 
       {/* ---------- HOW IT WORKS ---------- */}
+      {/* ---------- FOOD GALLERY ---------- */}
+      <section className="space-y-6">
+        <div className="max-w-2xl">
+          <span className="eyebrow">Real desi food, real macros</span>
+          <h2 className="mt-3 text-2xl font-semibold sm:text-5xl">From biryani to greens.</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { src: "photo-1585937421612-70a008356fbe", label: "Karahi & curries" },
+            { src: "photo-1567188040759-fb8a883dc6d8", label: "Balanced thalis" },
+            { src: "photo-1546069901-ba9599a7e63c", label: "Fresh & lean" },
+            { src: "photo-1571019613454-1cb2f99b2d8b", label: "Home & gym" },
+          ].map((g) => (
+            <div key={g.label} className="group relative overflow-hidden rounded-2xl shadow-soft ring-1 ring-ink/[.06]">
+              <img src={`https://images.unsplash.com/${g.src}?q=85&w=1400&auto=format&fit=crop`}
+                alt={g.label} loading="lazy"
+                className="h-40 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56" />
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/10 to-transparent" />
+              <span className="absolute bottom-3 left-3 text-sm font-semibold text-white">{g.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------- HOW IT WORKS ---------- */}
       <section id="how" className="space-y-12">
         <div className="max-w-2xl">
           <span className="eyebrow">How it works</span>
@@ -270,6 +295,41 @@ export default function HomePage() {
               <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-ember-400/15 text-ember-300"><f.icon className="h-5 w-5" /></span>
               <h3 className="mt-3 text-lg font-semibold">{f.title}</h3>
               <p className="mt-1 text-sm text-white/65">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------- WHY NUTRIFIT (comparison) ---------- */}
+      <section className="space-y-8">
+        <div className="max-w-2xl">
+          <span className="eyebrow">Why NutriFit</span>
+          <h2 className="mt-3 text-2xl font-semibold sm:text-5xl">Built for your plate, not the West's.</h2>
+          <p className="mt-4 text-base text-ink-muted sm:text-lg">
+            Most trackers assume Western diets and guess at desi portions. NutriFit is local-first, by design.
+          </p>
+        </div>
+        <div className="overflow-hidden rounded-3xl border border-ink/[.07] bg-paper-card shadow-soft">
+          <div className="grid grid-cols-[1.5fr,1fr,1fr] gap-2 bg-paper-warm px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wide text-ink-muted sm:px-6">
+            <span className="text-left">Feature</span><span>Generic apps</span><span className="text-brand-600">NutriFit</span>
+          </div>
+          {[
+            ["Verified Pakistani food data", false],
+            ["Realistic desi portions", false],
+            ["Home & gym workout plans", "some"],
+            ["Plateau detection & adaptation", "some"],
+            ["Correct macros (fat = 9 kcal/g)", "some"],
+            ["Free to start, no ads", "some"],
+          ].map(([label, generic]) => (
+            <div key={label as string}
+              className="grid grid-cols-[1.5fr,1fr,1fr] items-center gap-2 border-t border-ink/[.06] px-4 py-3.5 text-sm sm:px-6">
+              <span className="font-medium">{label}</span>
+              <span className="flex items-center justify-center text-ink-faint">
+                {generic === false ? <X className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
+              </span>
+              <span className="flex items-center justify-center">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-500/12 text-brand-600"><Check className="h-4 w-4" /></span>
+              </span>
             </div>
           ))}
         </div>

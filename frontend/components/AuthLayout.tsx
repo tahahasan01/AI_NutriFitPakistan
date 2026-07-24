@@ -26,7 +26,9 @@ export function AuthLayout({
     <div className="mx-auto grid min-h-[70vh] max-w-4xl items-stretch gap-0 overflow-hidden rounded-3xl border border-ink/[.07] bg-paper-card shadow-lift md:grid-cols-2">
       {/* Brand panel */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-night p-8 text-white md:flex">
-        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-ember-400/15 blur-3xl" />
+        <img aria-hidden src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=85&w=1400&auto=format&fit=crop"
+          alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" loading="lazy" />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-night/70 via-night/85 to-night/95" />
         <Link href="/" className="relative flex items-center gap-2.5">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-leaf-600 text-white ring-1 ring-leaf-700">
             <Leaf className="h-5 w-5" />
