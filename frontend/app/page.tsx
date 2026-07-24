@@ -72,7 +72,7 @@ export default function HomePage() {
   return (
     <div className="space-y-28 pb-10">
       {/* ---------- HERO ---------- */}
-      <section className="relative grid items-center gap-12 pt-6 lg:grid-cols-[1.15fr,0.85fr] lg:pt-10">
+      <section className="relative grid items-center gap-10 pt-4 lg:grid-cols-[1.1fr,0.9fr] lg:pt-6">
         <div aria-hidden className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-ember-300/30 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute right-0 top-52 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" />
 
@@ -80,16 +80,16 @@ export default function HomePage() {
           <span className="badge bg-brand-500/12 text-brand-500 ring-1 ring-brand-500/20">
             <Sparkles className="h-3.5 w-3.5 text-saffron-300" /> AI-assisted nutrition & fitness
           </span>
-          <h1 className="mt-6 font-display text-[2.5rem] font-semibold leading-[1.05] sm:text-7xl">
-            Eat well.<br />Train smart.<br />
+          <h1 className="mt-5 font-display text-[2.3rem] font-semibold leading-[1.06] sm:text-5xl lg:text-6xl">
+            Eat well. Train smart.<br />
             <span className="italic text-flame">Actually</span> stick to it.
           </h1>
-          <p className="mt-7 max-w-lg text-base sm:text-lg leading-relaxed text-ink-soft animate-fade-up-1">
+          <p className="mt-5 max-w-lg text-base sm:text-lg leading-relaxed text-ink-soft animate-fade-up-1">
             Desi-first 7-day meal plans, home or gym workouts, and progress tracking —
             built on locally accurate, verified food data. Not another calorie calculator.
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center gap-3 animate-fade-up-2">
+          <div className="mt-7 flex flex-wrap items-center gap-3 animate-fade-up-2">
             <Link href="/signup" className="btn-accent px-5 py-3 text-sm sm:px-7 sm:py-3.5 sm:text-base">
               Create free account <ArrowRight className="h-4 w-4" />
             </Link>
