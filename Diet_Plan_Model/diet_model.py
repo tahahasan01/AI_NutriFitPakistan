@@ -2,10 +2,11 @@
 
 
 # diet_model.py (DL version with no-zero-calorie fallback and proper else branches)
+from __future__ import annotations  # lazy annotations so torch.Tensor hints don't eval at import
+
 import os
-import json
 import random
-from typing import Dict, List, Tuple, Optional
+from typing import List, Tuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -13,24 +14,33 @@ import joblib
 
 from sklearn.preprocessing import StandardScaler
 
-# ---- Deep learning (PyTorch) ----
+# ---- Deep learning (PyTorch) is OPTIONAL ----
+# If torch is unavailable, the model transparently uses the exact-formula
+# (Mifflin-St Jeor + Atwater) path, which is deterministic and accurate for
+# targets. The neural ranker only refines food *ordering* when torch is present.
 try:
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
     from torch.utils.data import DataLoader, TensorDataset
-except ImportError as e:
-    raise RuntimeError(
-        "PyTorch is required for the DL diet model. Install with: pip install torch --index-url https://download.pytorch.org/whl/cpu"
-    ) from e
+    TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    nn = None
+    F = None
+    DataLoader = TensorDataset = None
+    TORCH_AVAILABLE = False
+
+# Base class that degrades to `object` when torch is absent so the module imports.
+_Module = nn.Module if TORCH_AVAILABLE else object
 
 
 # ------------------------------
-# Energy constants (per your request)
+# Energy constants (Atwater factors)
 # ------------------------------
 KCAL_PER_G_PROTEIN = 4.0
 KCAL_PER_G_CARB = 4.0
-KCAL_PER_G_FAT = 8.0  # <-- as requested (NOT 9)
+KCAL_PER_G_FAT = 9.0  # corrected: dietary fat is 9 kcal/g (was incorrectly 8)
 
 def kcal_from_macros(p_g: float, c_g: float, f_g: float) -> float:
     """Compute kcal from macros using your requested multipliers."""
@@ -57,7 +67,7 @@ def clamp_qty(qty: float, lo: float = 50.0, hi: float = 600.0) -> float:
 # ------------------------------
 # Small helper modules (PyTorch)
 # ------------------------------
-class ProfileToTargetsNet(nn.Module):
+class ProfileToTargetsNet(_Module):
     """
     Input: encoded profile vector
     Outputs:
@@ -103,7 +113,7 @@ class ProfileToTargetsNet(nn.Module):
         return tdee, target_cal, macro, meal_cals
 
 
-class FoodSuitabilityNet(nn.Module):
+class FoodSuitabilityNet(_Module):
     """
     Feeds a concatenated feature vector describing:
       - user profile (scaled numerics + one-hots)
@@ -156,8 +166,11 @@ class DietPlanDL:
         self.profile_net: Optional[ProfileToTargetsNet] = None
         self.food_net: Optional[FoodSuitabilityNet] = None
 
+        # Which inference path is active: "neural" (torch ranker) or "math" (formula).
+        self.backend = "math"
+
         # Device
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if (TORCH_AVAILABLE and torch.cuda.is_available()) else "cpu") if TORCH_AVAILABLE else None
 
         # Config
         self.use_math_fallback = use_math_fallback
@@ -508,6 +521,10 @@ class DietPlanDL:
     # ------------------ LOADING ------------------ #
     def load_models(self) -> bool:
         """Load trained nets + scalers from disk, if present."""
+        if not TORCH_AVAILABLE:
+            print("ℹ️ PyTorch not installed; using exact-formula (math) backend.")
+            self.backend = "math"
+            return False
         try:
             prof_sd = os.path.join(self.model_dir, "profile_net.pt")
             food_sd = os.path.join(self.model_dir, "food_net.pt")
@@ -535,10 +552,12 @@ class DietPlanDL:
             self.food_net.load_state_dict(torch.load(food_sd, map_location=self.device))
             self.food_net.eval()
 
+            self.backend = "neural"
             print("✅ Loaded trained models.")
             return True
         except Exception as e:
             print(f"❌ Failed to load models: {e}")
+            self.backend = "math"
             return False
 
     # ------------------ INFERENCE HELPERS ------------------ #
@@ -568,8 +587,10 @@ class DietPlanDL:
 
         # prepare profile parts (unscaled BMI etc)
         bmi = weight / ((height / 100.0) ** 2 + 1e-6)
-        # also get profile-level predictions to include as features
-        tdee, tgt, _, _ = self._predict_profile_targets(age, gender, weight, height, goal, activity)
+        # Match the TRAINING feature distribution: the ranker was trained with the
+        # math (formula) TDEE/target as features, so use the same at inference.
+        tdee = self._math_tdee(age, gender, weight, height, activity)
+        tgt = self._math_target_cal(tdee, goal)
 
         # Build numeric + cat blocks
         goal_oh = np.array([1.0 if goal == i else 0.0 for i in range(3)], dtype=np.float32)
@@ -641,10 +662,13 @@ class DietPlanDL:
             print("Returning empty plan.")
             return {"weekly_plan": [], "targets": {}, "tdee": 0.0}
 
-        # Predict profile targets
-        tdee, tgt, (p, c, f), (bcals, lcals, dcals, scals) = self._predict_profile_targets(
-            age, gender, weight, height, goal, activity_level
-        )
+        # Targets: use the exact Mifflin-St Jeor + Atwater formula (deterministic and
+        # clinically grounded) rather than the neural approximation of it. The neural
+        # net is retained only to *rank* foods below.
+        tdee = self._math_tdee(age, gender, weight, height, activity_level)
+        tgt = self._math_target_cal(tdee, goal)
+        p, c, f = self._math_macros(tgt, goal)
+        bcals, lcals, dcals, scals = self._math_meal_splits(tgt)
         meal_targets = {"Breakfast": bcals, "Lunch": lcals, "Dinner": dcals, "Snack": scals}
 
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -739,8 +763,10 @@ class DietPlanDL:
         if len(pool) == 0:
             return []
 
-        # Get target meal calories from profile_net
-        tdee, tgt, _, (bc, lc, dc, sc) = self._predict_profile_targets(age, gender, weight, height, goal, act)
+        # Get target meal calories from the exact formula (consistent with generate).
+        tdee = self._math_tdee(age, gender, weight, height, act)
+        tgt = self._math_target_cal(tdee, goal)
+        bc, lc, dc, sc = self._math_meal_splits(tgt)
         mcal = {"Breakfast": bc, "Lunch": lc, "Dinner": dc, "Snack": sc}[meal_type]
 
         scored = self._score_candidates(age, gender, weight, height, goal, act, meal_type, mcal, pool)

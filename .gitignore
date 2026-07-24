@@ -4,6 +4,11 @@ venv/
 env/
 .env/
 
+# Env files (never commit secrets)
+.env
+*.env.local
+.env.*.local
+
 # Python
 __pycache__/
 *.py[cod]
@@ -14,6 +19,12 @@ __pycache__/
 .eggs/
 dist/
 build/
+.pytest_cache/
+
+# Local dev database & sessions
+*.db
+nutrifit_dev.db
+.flask_session/
 
 # IDE
 .idea/
@@ -25,10 +36,10 @@ build/
 .DS_Store
 Thumbs.db
 
-# Node (if any)
+# Node / Next.js
 node_modules/
+.next/
+out/
 
-# Large model/binaries (optional - remove if you want to track them)
-# *.pkl
-# *.pt
-# *.save
+# Vercel
+.vercel
