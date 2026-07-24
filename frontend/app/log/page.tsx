@@ -83,16 +83,16 @@ function LogInner() {
       </header>
 
       {/* Summary */}
-      <div className="card grid items-center gap-6 sm:grid-cols-[auto,1fr] animate-fade-up">
+      <div className="card animate-fade-up">
         {target ? (
-          <>
+          <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center">
             <CalorieRing eaten={totals.calories} target={target.calories} />
-            <div className="space-y-3">
+            <div className="w-full max-w-md space-y-3">
               <MacroBar label="Protein" val={totals.protein} target={target.protein} color="#8b93f8" />
               <MacroBar label="Carbs" val={totals.carbs} target={target.carbs} color="#f5a524" />
               <MacroBar label="Fat" val={totals.fat} target={target.fat} color="#f43f5e" />
             </div>
-          </>
+          </div>
         ) : (
           <div className="sm:col-span-2 text-center">
             <p className="text-ink-muted">Set your targets by generating a plan first.</p>
