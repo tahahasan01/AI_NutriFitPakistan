@@ -38,34 +38,27 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <Sidebar open={open} onClose={() => setOpen(false)} collapsed={collapsed} />
 
       <div className={`transition-[padding] duration-300 ${collapsed ? "lg:pl-0" : "lg:pl-64"}`}>
-        {/* Top app bar — full-width background, inner content aligned to the main column */}
-        <header className="sticky top-0 z-20 border-b border-ink/[.06] bg-paper/80 backdrop-blur-md">
-          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
+        {/* Top app bar — full width so controls never get clipped */}
+        <header className="sticky top-0 z-20 flex h-14 w-full items-center justify-between gap-3 border-b border-ink/[.06] bg-paper/80 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2">
             {/* mobile: open drawer */}
-            <button onClick={() => setOpen(true)} aria-label="Open menu"
-              className="grid h-9 w-9 place-items-center rounded-lg text-ink-soft hover:bg-paper-warm lg:hidden">
-              <Menu className="h-5 w-5" />
+            <button onClick={() => setOpen(true)}
+              className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-medium text-ink-soft hover:bg-paper-warm lg:hidden">
+              <Menu className="h-5 w-5" /> Menu
             </button>
-            {/* desktop: collapse/expand sidebar */}
-            <button onClick={() => setCollapsed((c) => !c)} aria-label="Toggle sidebar"
-              className="hidden h-9 w-9 place-items-center rounded-lg text-ink-soft hover:bg-paper-warm lg:grid">
-              {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+            {/* desktop: collapse / expand sidebar */}
+            <button onClick={() => setCollapsed((c) => !c)}
+              className="hidden items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-medium text-ink-soft hover:bg-paper-warm lg:flex">
+              {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />} Menu
             </button>
-            <Link href="/dashboard" className={`items-center gap-2 lg:hidden ${collapsed ? "hidden lg:flex" : "flex"}`}>
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-leaf-600 text-white"><Leaf className="h-4 w-4" /></span>
-              <span className="font-display text-lg font-semibold">NutriFit<span className="text-leaf-600"> PK</span></span>
+            {/* brand: always on mobile; on desktop only when the sidebar is collapsed */}
+            <Link href="/dashboard" className={`min-w-0 items-center gap-2 ${collapsed ? "flex" : "flex lg:hidden"}`}>
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-leaf-600 text-white"><Leaf className="h-4 w-4" /></span>
+              <span className="truncate font-display text-lg font-semibold">NutriFit<span className="text-leaf-600"> PK</span></span>
             </Link>
-            {/* show brand next to toggle on desktop when collapsed */}
-            {collapsed && (
-              <Link href="/dashboard" className="hidden items-center gap-2 lg:flex">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-leaf-600 text-white"><Leaf className="h-4 w-4" /></span>
-                <span className="font-display text-lg font-semibold">NutriFit<span className="text-leaf-600"> PK</span></span>
-              </Link>
-            )}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle />
             <Link href="/settings" title="Settings"
               className={`grid h-9 w-9 place-items-center rounded-lg transition ${
@@ -75,7 +68,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <Link href="/settings" title="Account" className="ml-1">
               <Avatar src={avatar} name={user?.name} size={32} />
             </Link>
-          </div>
           </div>
         </header>
 
