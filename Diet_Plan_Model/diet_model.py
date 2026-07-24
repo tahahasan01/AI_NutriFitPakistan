@@ -208,10 +208,10 @@ class DietPlanDL:
             self.snacks_data = df_s
             self.combined_data = pd.concat([df_f, df_s], ignore_index=True)
 
-            print(f"✅ Loaded {len(df_f)} foods and {len(df_s)} snacks.")
+            print(f"OK: Loaded {len(df_f)} foods and {len(df_s)} snacks.")
             return True
         except Exception as e:
-            print(f"❌ Error loading data: {e}")
+            print(f"ERROR: Error loading data: {e}")
             return False
 
     # ------------------ "TEACHER" MATH (for weak labels) ------------------ #
@@ -381,7 +381,7 @@ class DietPlanDL:
         # Save model + scaler
         torch.save(self.profile_net.state_dict(), os.path.join(self.model_dir, "profile_net.pt"))
         joblib.dump(self.profile_num_scaler, os.path.join(self.model_dir, "profile_num_scaler.joblib"))
-        print("✅ Saved profile_net + scaler")
+        print("OK: Saved profile_net + scaler")
 
     def _build_ranker_training(self, profiles: int = 8000, foods_per_meal: int = 40):
         assert self.combined_data is not None and len(self.combined_data) > 0, "Load data first."
@@ -505,24 +505,24 @@ class DietPlanDL:
         # Save model + scaler
         torch.save(self.food_net.state_dict(), os.path.join(self.model_dir, "food_net.pt"))
         joblib.dump(self.ranker_num_scaler, os.path.join(self.model_dir, "ranker_num_scaler.joblib"))
-        print("✅ Saved food_net + scaler")
+        print("OK: Saved food_net + scaler")
 
     def train_all(self,
                   profile_samples: int = 50000, profile_epochs: int = 35,
                   ranker_profiles: int = 8000, foods_per_meal: int = 40, ranker_epochs: int = 25):
         assert self.combined_data is not None, "Call load_data() first."
 
-        print("🚀 Training Profile→Targets net...")
+        print("Training ProfileTargets net...")
         self.train_profile_net(n_profiles=profile_samples, epochs=profile_epochs)
 
-        print("🚀 Training Food Suitability net...")
+        print("Training Food Suitability net...")
         self.train_food_net(profiles=ranker_profiles, foods_per_meal=foods_per_meal, epochs=ranker_epochs)
 
     # ------------------ LOADING ------------------ #
     def load_models(self) -> bool:
         """Load trained nets + scalers from disk, if present."""
         if not TORCH_AVAILABLE:
-            print("ℹ️ PyTorch not installed; using exact-formula (math) backend.")
+            print("INFO: PyTorch not installed; using exact-formula (math) backend.")
             self.backend = "math"
             return False
         try:
@@ -533,7 +533,7 @@ class DietPlanDL:
 
             if not (os.path.exists(prof_sd) and os.path.exists(food_sd) and
                     os.path.exists(prof_scl) and os.path.exists(rank_scl)):
-                print("⚠️ Models or scalers not found; train first (python diet_model.py --train).")
+                print("WARN: Models or scalers not found; train first (python diet_model.py --train).")
                 return False
 
             # Restore scalers
@@ -553,10 +553,10 @@ class DietPlanDL:
             self.food_net.eval()
 
             self.backend = "neural"
-            print("✅ Loaded trained models.")
+            print("OK: Loaded trained models.")
             return True
         except Exception as e:
-            print(f"❌ Failed to load models: {e}")
+            print(f"ERROR: Failed to load models: {e}")
             self.backend = "math"
             return False
 
@@ -655,7 +655,7 @@ class DietPlanDL:
         self._last_profile_tuple = (age, gender, weight, height, goal, activity_level)
 
         if self.profile_net is None or self.food_net is None:
-            print("⚠️ DL models are not loaded. ", end="")
+            print("WARN: DL models are not loaded. ", end="")
             if self.use_math_fallback:
                 print("Using math fallback to generate a plan.")
                 return self._math_generate_meal_plan(age, gender, weight, height, goal, activity_level)
