@@ -1,6 +1,6 @@
 "use client";
 
-const COLORS = { protein: "#6366f1", carbs: "#f59e0b", fat: "#f43f5e" };
+const COLORS = { protein: "#5b6ee1", carbs: "#e8a317", fat: "#e0577b" };
 
 interface Props {
   protein: number;

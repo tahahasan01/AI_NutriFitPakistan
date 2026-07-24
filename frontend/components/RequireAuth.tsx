@@ -13,10 +13,10 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   }, [loading, user, router]);
 
   if (loading) {
-    return <div className="py-20 text-center text-slate-500">Loading…</div>;
+    return <div className="py-20 text-center text-ink-muted">Loading…</div>;
   }
   if (!user) {
-    return <div className="py-20 text-center text-slate-500">Redirecting to sign in…</div>;
+    return <div className="py-20 text-center text-ink-muted">Redirecting to sign in…</div>;
   }
   return <>{children}</>;
 }

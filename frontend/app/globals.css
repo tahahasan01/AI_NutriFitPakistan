@@ -2,70 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-inter: "Inter", system-ui, sans-serif;
-}
-
 @layer base {
-  html {
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   body {
-    @apply text-ink;
-    background:
-      radial-gradient(1200px 600px at 100% -10%, rgba(16,185,129,.10), transparent 60%),
-      radial-gradient(900px 500px at -10% 10%, rgba(99,102,241,.08), transparent 55%),
-      #f6f8fb;
+    @apply bg-paper text-ink;
     min-height: 100vh;
+    /* warm paper with a whisper of grain */
+    background-color: #FBF8F1;
+    background-image:
+      radial-gradient(900px 500px at 90% -8%, rgba(132,204,22,.10), transparent 60%),
+      radial-gradient(700px 460px at -8% 4%, rgba(47,107,70,.08), transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
   }
-  h1, h2, h3 { @apply tracking-tight; }
+  h1, h2, h3 { @apply font-display tracking-tight; }
 }
 
 @layer components {
+  .display { @apply font-display; }
+
   /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold
            transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/60;
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
   }
+  /* primary = deep pine with a solid drop (chunky, tactile, not a gradient) */
   .btn-primary {
-    @apply btn text-white shadow-glow;
-    background-image: linear-gradient(135deg, #10b981, #059669);
+    @apply btn bg-brand-600 text-paper hover:bg-brand-700 hover:-translate-y-0.5;
   }
-  .btn-primary:hover:not(:disabled) { @apply -translate-y-0.5; filter: brightness(1.05); }
+  /* the loud CTA = lime pop */
+  .btn-accent {
+    @apply btn bg-lime-500 text-brand-800 hover:bg-lime-400 hover:-translate-y-0.5 shadow-soft;
+  }
   .btn-ghost {
-    @apply btn border border-slate-200 bg-white/80 text-ink-soft hover:bg-white hover:border-slate-300 hover:-translate-y-0.5;
+    @apply btn border border-ink/15 bg-paper-card/70 text-ink-soft hover:border-ink/30 hover:-translate-y-0.5;
   }
   .btn-chip {
     @apply inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition;
   }
 
-  /* Surfaces */
+  /* Surfaces — solid warm cards with a defined edge (no gratuitous glass) */
   .card {
-    @apply rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-soft backdrop-blur-sm;
+    @apply rounded-2xl border border-ink/[.07] bg-paper-card p-5 shadow-soft;
   }
-  .card-hover { @apply transition-all duration-200 hover:shadow-lift hover:-translate-y-0.5; }
+  .card-hover { @apply transition-all duration-200 hover:shadow-lift hover:-translate-y-1; }
 
   /* Forms */
   .field { @apply space-y-1.5; }
-  .label { @apply block text-xs font-semibold uppercase tracking-wide text-ink-muted; }
+  .label { @apply block text-[11px] font-bold uppercase tracking-[.08em] text-ink-muted; }
   .input {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-ink
-           shadow-sm outline-none transition
-           placeholder:text-ink-faint focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10;
+    @apply w-full rounded-xl border border-ink/15 bg-paper-card px-3.5 py-2.5 text-sm text-ink
+           outline-none transition placeholder:text-ink-faint
+           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10;
   }
   select.input { @apply cursor-pointer; }
 
-  .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
-  }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .eyebrow { @apply text-xs font-bold uppercase tracking-[.14em] text-brand-600; }
 }
 
 /* Recharts polish */
-.recharts-cartesian-axis-tick text { fill: #94a3b8; font-size: 12px; }
+.recharts-cartesian-axis-tick text { fill: #A8A296; font-size: 12px; }
 .recharts-default-tooltip {
   border-radius: 12px !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 8px 30px rgba(16,24,40,.10) !important;
+  border: 1px solid rgba(27,26,21,.1) !important;
+  box-shadow: 0 12px 40px -8px rgba(27,26,21,.16) !important;
+  background: #FFFDF8 !important;
 }

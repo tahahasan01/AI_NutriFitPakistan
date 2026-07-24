@@ -7,7 +7,7 @@ import { api, ApiError } from "@/lib/api";
 import { ACTIVITIES, GOALS, type Exercise, type WorkoutPlan } from "@/lib/types";
 
 const DIFF_COLOR: Record<string, string> = {
-  beginner: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+  beginner: "bg-brand-50 text-brand-700 ring-brand-100",
   intermediate: "bg-amber-50 text-amber-700 ring-amber-100",
   expert: "bg-rose-50 text-rose-700 ring-rose-100",
 };
@@ -90,7 +90,7 @@ function WorkoutInner() {
               </div>
             </div>
             <div className="card flex items-center gap-4">
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-indigo-50 text-indigo-600"><TrendingDown className="h-6 w-6" /></span>
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-saffron-50 text-saffron-400"><TrendingDown className="h-6 w-6" /></span>
               <div>
                 <div className="text-sm font-semibold">30-day projection</div>
                 <div className="text-sm text-ink-muted">{plan.chart_data.summary}</div>
@@ -102,8 +102,8 @@ function WorkoutInner() {
             {days.map((d) => (
               <button key={d} onClick={() => setActiveDay(d)}
                 className={`btn-chip ${activeDay === d
-                  ? "bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-glow"
-                  : "border border-slate-200 bg-white text-ink-muted hover:border-slate-300"}`}>
+                  ? "bg-brand-600 text-paper"
+                  : "border border-ink/[.1] bg-paper-card text-ink-muted hover:border-ink/20"}`}>
                 {d}
               </button>
             ))}
@@ -121,12 +121,12 @@ function WorkoutInner() {
                     </button>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="badge bg-slate-100 text-ink-soft">{ex.Primary_Muscle}</span>
-                    <span className="badge bg-slate-100 text-ink-soft">{ex.Equipment}</span>
-                    <span className={`badge ring-1 ${DIFF_COLOR[diff] || "bg-slate-100 text-ink-soft ring-slate-100"}`}>{ex.Difficulty}</span>
+                    <span className="badge bg-paper-warm text-ink-soft">{ex.Primary_Muscle}</span>
+                    <span className="badge bg-paper-warm text-ink-soft">{ex.Equipment}</span>
+                    <span className={`badge ring-1 ${DIFF_COLOR[diff] || "bg-paper-warm text-ink-soft ring-ink/[.06]"}`}>{ex.Difficulty}</span>
                   </div>
                   {ex.Instructions && <p className="mt-3 line-clamp-2 text-sm text-ink-muted">{ex.Instructions}</p>}
-                  <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-sm">
+                  <div className="mt-3 flex items-center justify-between border-t border-ink/[.06] pt-3 text-sm">
                     <span className="flex items-center gap-1.5 text-ink-soft"><Flame className="h-4 w-4 text-brand-600" /> ~{ex.calories ?? 0} kcal</span>
                     {ex.Video_URL && (
                       <a href={ex.Video_URL} target="_blank" rel="noreferrer"

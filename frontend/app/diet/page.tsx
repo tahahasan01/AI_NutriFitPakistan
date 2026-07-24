@@ -14,7 +14,7 @@ function MacroBar({ label, value, color, max }: { label: string; value: number; 
   return (
     <div className="flex items-center gap-2">
       <span className="w-4 text-[11px] font-semibold text-ink-muted">{label}</span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-paper-warm">
         <div className="h-full rounded-full" style={{ width: `${Math.min(100, (value / max) * 100)}%`, background: color }} />
       </div>
       <span className="w-8 text-right text-[11px] font-semibold text-ink">{Math.round(value)}</span>
@@ -116,7 +116,7 @@ function DietInner() {
                 { label: "Carbs", val: plan.targets.carbs, unit: "g", color: "text-macro-carbs" },
                 { label: "Fat", val: plan.targets.fat, unit: "g", color: "text-macro-fat" },
               ].map((s) => (
-                <div key={s.label} className="rounded-xl bg-slate-50 p-3 text-center ring-1 ring-slate-100">
+                <div key={s.label} className="rounded-xl bg-paper-warm p-3 text-center ring-1 ring-ink/[.06]">
                   <div className={`text-xl font-extrabold ${s.color}`}>{Math.round(s.val)}</div>
                   <div className="text-[11px] uppercase tracking-wide text-ink-muted">{s.label} · {s.unit}</div>
                 </div>
@@ -129,8 +129,8 @@ function DietInner() {
             {plan.weekly_plan.map((d, i) => (
               <button key={i} onClick={() => setActiveDay(i)}
                 className={`btn-chip ${activeDay === i
-                  ? "bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-glow"
-                  : "border border-slate-200 bg-white text-ink-muted hover:border-slate-300"}`}>
+                  ? "bg-brand-600 text-paper"
+                  : "border border-ink/[.1] bg-paper-card text-ink-muted hover:border-ink/20"}`}>
                 {d.day || `Day ${i + 1}`}
               </button>
             ))}
@@ -167,9 +167,9 @@ function DietInner() {
                     <span className="text-ink-muted">kcal</span>
                   </div>
                   <div className="mt-3 space-y-1.5">
-                    <MacroBar label="P" value={m.protein} color="#6366f1" max={maxMacro} />
-                    <MacroBar label="C" value={m.carbs} color="#f59e0b" max={maxMacro} />
-                    <MacroBar label="F" value={m.fat} color="#f43f5e" max={maxMacro} />
+                    <MacroBar label="P" value={m.protein} color="#5b6ee1" max={maxMacro} />
+                    <MacroBar label="C" value={m.carbs} color="#e8a317" max={maxMacro} />
+                    <MacroBar label="F" value={m.fat} color="#e0577b" max={maxMacro} />
                   </div>
                 </div>
               );

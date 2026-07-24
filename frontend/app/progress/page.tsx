@@ -65,8 +65,8 @@ function ProgressInner() {
       <div className="grid grid-cols-3 gap-3 animate-fade-up">
         {[
           { label: "Current", val: current != null ? `${current} kg` : "—", icon: Scale, color: "text-brand-600 bg-brand-50" },
-          { label: "Net change", val: net != null ? `${net > 0 ? "+" : ""}${net.toFixed(1)} kg` : "—", icon: LineIcon, color: (net ?? 0) <= 0 ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50" },
-          { label: "Weeks logged", val: chartData.length ? `${chartData.length - 1}` : "0", icon: CheckCircle2, color: "text-indigo-600 bg-indigo-50" },
+          { label: "Net change", val: net != null ? `${net > 0 ? "+" : ""}${net.toFixed(1)} kg` : "—", icon: LineIcon, color: (net ?? 0) <= 0 ? "text-brand-600 bg-brand-50" : "text-rose-600 bg-rose-50" },
+          { label: "Weeks logged", val: chartData.length ? `${chartData.length - 1}` : "0", icon: CheckCircle2, color: "text-saffron-400 bg-saffron-50" },
         ].map((s) => (
           <div key={s.label} className="card">
             <span className={`grid h-9 w-9 place-items-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></span>
@@ -106,8 +106,8 @@ function ProgressInner() {
                 <AreaChart data={chartData} margin={{ top: 10, right: 8, left: -18, bottom: 0 }}>
                   <defs>
                     <linearGradient id="wgt" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#2f6b46" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#2f6b46" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" vertical={false} />
@@ -115,7 +115,7 @@ function ProgressInner() {
                   <YAxis domain={["dataMin - 1", "dataMax + 1"]} allowDecimals={false} tickLine={false}
                     axisLine={false} width={34} fontSize={12} tickFormatter={(v) => `${Math.round(v)}`} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="weight" stroke="#059669" strokeWidth={2.5} fill="url(#wgt)" dot={{ r: 3, fill: "#059669" }} activeDot={{ r: 5 }} />
+                  <Area type="monotone" dataKey="weight" stroke="#245538" strokeWidth={2.5} fill="url(#wgt)" dot={{ r: 3, fill: "#245538" }} activeDot={{ r: 5 }} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -124,8 +124,8 @@ function ProgressInner() {
           </div>
 
           {plateau && (
-            <div className={`card flex items-start gap-3 ${plateau.detected ? "ring-1 ring-amber-200 bg-amber-50/60" : "ring-1 ring-emerald-200 bg-emerald-50/50"}`}>
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${plateau.detected ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
+            <div className={`card flex items-start gap-3 ${plateau.detected ? "ring-1 ring-amber-200 bg-amber-50/60" : "ring-1 ring-brand-200 bg-brand-50/50"}`}>
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${plateau.detected ? "bg-amber-100 text-amber-700" : "bg-brand-100 text-brand-700"}`}>
                 {plateau.detected ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
               </span>
               <div>
