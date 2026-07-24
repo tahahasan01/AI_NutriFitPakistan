@@ -1,362 +1,222 @@
-# NutriFit Pakistan — AI-Powered Nutrition & Fitness Platform
+# NutriFit Pakistan — AI-assisted Nutrition & Fitness
 
-Production-ready AI platform for personalized diet plans, workout generation, and progress tracking. Built for Pakistani users with local cuisine, TDEE-based nutrition, and MySQL-backed user accounts.
+Personalized diet plans, workout generation, and progress tracking, tuned for
+Pakistani cuisine and TDEE-based nutrition.
 
----
+**Stack:** FastAPI (Python) backend + Next.js (App Router, TypeScript) frontend.
+The frontend proxies `/api/*` to the backend, so session cookies stay
+first-party and the browser only ever talks to one origin.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the Application](#running-the-application)
-- [Production Deployment](#production-deployment)
-- [API Reference](#api-reference)
-- [Database Schema](#database-schema)
-- [Testing](#testing)
-- [Security](#security)
-- [Troubleshooting](#troubleshooting)
-- [License & Contributing](#license--contributing)
+```
+┌─────────────┐     /api/* (Next rewrite proxy)     ┌──────────────────┐
+│  Next.js    │  ───────────────────────────────▶   │   FastAPI API    │
+│  (Vercel)   │      cookie session (SameSite=Lax)   │  + ML modules    │
+└─────────────┘                                      └──────────────────┘
+                                                            │
+                                                     MySQL / Postgres
+```
 
 ---
 
-## Overview
-
-NutriFit Pakistan is a unified web application that provides:
-
-- **Personalized 7-day meal plans** (4 meals/day) using ML models and Pakistani/global food datasets  
-- **6-day workout plans** with equipment (home/gym), level, and goal-based filtering  
-- **User accounts** (signup/login) with MySQL and session-based auth  
-- **Weight progress tracking** (start + 6 weekly check-ins) with plateau detection and charts  
-- **Single entry point**: one Flask app serves diet, workout, and progress UIs
-
----
-
-## Features
-
-### Diet planning (Diet_Plan_Model)
-
-| Feature | Description |
-|--------|-------------|
-| **TDEE-based targets** | Mifflin–St Jeor equation; goal-specific calorie and macro targets |
-| **7-day meal plans** | Breakfast, lunch, dinner, snack; MLP + neural ranker for food selection |
-| **Meal swapping** | Alternative meals with similar nutrition (goal-aware) |
-| **Pakistani cuisine** | Local ingredients and meal types in datasets |
-| **Charts** | Macro pie chart, weekly progress projection (Chart.js) |
-
-### Workout planning (Work_Out_Model)
-
-| Feature | Description |
-|--------|-------------|
-| **6-day splits** | Pre-built splits with exercise recommendations from trained model |
-| **Equipment** | Home vs gym; MET-based calorie estimates |
-| **Level** | Beginner / intermediate adaptations |
-| **Exercise swap** | Alternatives by muscle group / equipment |
-| **PDF-style plan** | Plan view with exercises and instructions |
-
-### Progress tracking (Progress_Tracking)
-
-| Feature | Description |
-|--------|-------------|
-| **Weight log** | Start weight + 6 weekly check-ins |
-| **Goal mode** | Loss / gain / maintain; used for projections |
-| **Plateau detection** | Simple heuristic for stalled progress |
-| **Charts** | Weight-over-time and goal visualization (React/JSX component + HTML) |
-
-### User & auth
-
-- Signup (name, email, phone, password) and login  
-- Session-based auth with Flask-Login  
-- Password hashing (Werkzeug)  
-- Protected routes: diet form, result, workout, progress  
-
----
-
-## Architecture
-
-- **Single Flask app**: `Diet_Plan_Model/app.py` is the main WSGI application.
-- **Workout as blueprint**: Work_Out_Model is loaded as a Flask blueprint under `/workout`.
-- **Progress**: Static HTML/JS served from `Progress_Tracking/` at `/progress` and `/progress-tracking/<path>`.
-- **Database**: MySQL (SQLAlchemy) for users and weight logs.
-- **ML/MLP**: Scikit-learn and PyTorch-style models in Diet_Plan_Model; Work_Out_Model uses a pre-trained pickle model and CSV dataset.
-
----
-
-## Project Structure
+## Repository layout
 
 ```
 .
-├── README.md                    # This file
-├── .gitignore
-├── Diet_Plan_Model/             # Main Flask app + diet logic
-│   ├── app.py                   # Entry point — run this
-│   ├── diet_model.py            # Diet ML logic & ranker
-│   ├── meal_model.py            # Meal construction helpers
+├── backend/                 # FastAPI application
+│   ├── main.py              # app assembly (middleware, routers, lifespan)
+│   ├── settings.py          # env-driven config (dev SQLite fallback, prod guards)
+│   ├── database.py          # SQLAlchemy engine/session
+│   ├── models.py            # User, UserWeightLog
+│   ├── schemas.py           # Pydantic request/response models
+│   ├── security.py          # PBKDF2 password hashing + auth dependency
+│   ├── ratelimit.py         # optional slowapi rate limiting
+│   ├── ml.py                # loads diet/workout ML, diet post-processing
+│   ├── routers/             # auth, diet, workout, progress, health
+│   ├── tests/               # end-to-end smoke tests (pytest)
 │   ├── requirements.txt
-│   ├── cleaned_foods_dataset.csv
-│   ├── cleaned_snacks_dataset.csv
-│   ├── diet_model.pkl           # Pre-trained diet model (if used)
-│   ├── models/                  # Neural nets (food_net, profile_net, scalers)
-│   ├── templates/               # Jinja2: index, result, NutriFit_HomePage
-│   ├── static/
-│   └── test_api.py
-├── Work_Out_Model/              # Workout blueprint + data
-│   ├── app/
-│   │   ├── __init__.py          # create_app (blueprint registration)
-│   │   ├── routes.py            # /workout, generate_plan, swap_exercise
-│   │   ├── utils.py             # Plan generation, MET, swap logic
-│   │   ├── templates/
-│   │   └── static/
-│   ├── workout_model.pkl
-│   ├── workoutdata_with_estimated_met.csv
-│   ├── train_model.py           # Retrain workout model
-│   ├── wsgi.py                  # Standalone run for workout-only (optional)
-│   └── requirements.txt
-└── Progress_Tracking/           # Front-end assets for progress
-    ├── progress.html
-    └── ProgressPage.jsx
+│   ├── Dockerfile
+│   └── .env.example
+├── frontend/                # Next.js app (TypeScript, Tailwind)
+│   ├── app/                 # landing/auth, diet, workout, progress pages
+│   ├── components/          # Navbar, RequireAuth
+│   ├── lib/                 # api client, shared types
+│   ├── next.config.js       # /api proxy → BACKEND_URL
+│   └── .env.example
+├── Diet_Plan_Model/         # Diet ML (kept)
+│   ├── diet_model.py        # targets (Mifflin-St Jeor + Atwater) + neural ranker
+│   ├── cleaned_foods_dataset.csv, cleaned_snacks_dataset.csv
+│   └── models/              # trained nets + scalers (used only if torch installed)
+├── Work_Out_Model/          # Workout ML (kept)
+│   ├── utils.py             # rule-based plan generation, MET calories, swaps
+│   └── workoutdata_with_estimated_met.csv
+└── render.yaml              # example backend deploy blueprint
 ```
 
 ---
 
 ## Prerequisites
 
-- **Python** 3.10+ (3.12 recommended)
-- **MySQL** 8.x (or 5.7+) with a dedicated database and user
-- **pip** and a virtual environment (venv recommended)
+- Python 3.10+ (3.11 recommended)
+- Node.js 18+ (20/24 fine)
+- A database: SQLite is used automatically in dev; MySQL/Postgres for production
+- PyTorch is **optional** — see [ML backends](#ml-backends)
 
 ---
 
-## Installation
+## Local development
 
-### 1. Clone the repository
+### 1. Backend (FastAPI)
 
 ```bash
-git clone https://github.com/tahahasan01/AI-Powered-Nutrition-app.git
-cd AI-Powered-Nutrition-app
-```
-
-### 2. Create and activate a virtual environment
-
-**Windows (PowerShell):**
-
-```powershell
+cd <repo-root>
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+# Windows:  .venv\Scripts\activate     |  macOS/Linux:  source .venv/bin/activate
+pip install -r backend/requirements.txt
+
+cp backend/.env.example backend/.env   # optional; dev works with defaults
+uvicorn backend.main:app --reload --port 5000
 ```
 
-**Linux / macOS:**
+- API root: http://localhost:5000
+- Interactive docs (Swagger): http://localhost:5000/docs
+- Health: http://localhost:5000/api/health
+- With no `DATABASE_URL`, a local `nutrifit_dev.db` (SQLite) is created automatically.
+
+### 2. Frontend (Next.js)
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+cd frontend
+npm install
+cp .env.example .env.local           # BACKEND_URL=http://localhost:5000
+npm run dev                          # http://localhost:3000
 ```
 
-### 3. Install dependencies
-
-**Option A — one command (recommended):**
-
-```bash
-pip install -r requirements.txt
-```
-
-**Option B — per-module:**
-
-```bash
-pip install -r Diet_Plan_Model/requirements.txt
-pip install -r Work_Out_Model/requirements.txt
-pip install Flask-Login Flask-SQLAlchemy PyMySQL
-```
-
-Optional (if Diet_Plan_Model uses PyTorch models in `models/`):
-
-```bash
-pip install torch
-```
-
-### 4. Ensure data and models are present
-
-- `Diet_Plan_Model/`: `cleaned_foods_dataset.csv`, `cleaned_snacks_dataset.csv`, `models/` (and any `.pkl` / `.pt` used by `diet_model.py`)
-- `Work_Out_Model/`: `workoutdata_with_estimated_met.csv`, `workout_model.pkl`
+Open http://localhost:3000, sign up, and use Diet / Workout / Progress.
 
 ---
 
-## Configuration
+## Food dataset (accuracy)
 
-### Environment variables (production)
-
-| Variable | Description | Default (dev) |
-|----------|-------------|----------------|
-| `NUTRIFIT_SECRET` | Flask `secret_key` for sessions | `your-secret-key-here` |
-| `SQLALCHEMY_DATABASE_URI` | MySQL connection string | See below |
-
-### Database (MySQL)
-
-1. Create database and user:
-
-```sql
-CREATE DATABASE nutrifit CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'nutrifit_user'@'localhost' IDENTIFIED BY 'your_secure_password';
-GRANT ALL PRIVILEGES ON nutrifit.* TO 'nutrifit_user'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-2. Set the connection string in `Diet_Plan_Model/app.py` or via environment:
-
-- In code (replace with your credentials):
-
-```python
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://nutrifit_user:your_secure_password@localhost/nutrifit'
-```
-
-- Or export before run:
+The food/snack tables are a **curated, per-100g, Atwater-consistent** dataset of
+Pakistani + common global foods, verified within ~6% of authoritative
+(USDA/standard) per-100g values. It is generated and validated by a script:
 
 ```bash
-export SQLALCHEMY_DATABASE_URI='mysql+pymysql://user:pass@localhost/nutrifit'
+python Diet_Plan_Model/build_dataset.py
 ```
 
-Tables `user` and `user_weight_logs` are created automatically on first run when `db.create_all()` runs (see `app.py` `if __name__ == '__main__'`).
+This rebuilds `cleaned_foods_dataset.csv` and `cleaned_snacks_dataset.csv`,
+validating that every row is per-100g, Atwater-consistent
+(`Calories = 4·carb + 4·protein + 9·fat − 2·fiber`), has non-zero macros, and
+that each meal type has enough variety. To add or correct a food, edit the
+`FOODS` / `SNACKS` tables in that script and re-run — validation blocks bad rows.
 
----
+> The original datasets mixed per-serving and per-100g values with ~14–21%
+> Atwater-inconsistent rows, ~6% zero-macro rows, and all-zero Sugars/Fiber
+> columns. That data was replaced because the model assumes per-100g.
 
-## Running the Application
+## ML backends
 
-From the **repository root**:
+`diet_model.py` computes calorie/macro **targets** with the exact
+Mifflin–St Jeor equation and correct Atwater factors (protein/carb = 4 kcal/g,
+**fat = 9 kcal/g**). Food *ranking* uses a neural ranker when trained models are
+present **and** PyTorch is installed; otherwise it uses the deterministic
+formula-scored path. Both paths are accurate for targets — the ranker only
+refines food ordering.
+
+The stale pre-trained models (trained on the old inconsistent data) were removed,
+so the app runs on the correct deterministic path by default. To (re)train the
+ranker on the current dataset:
 
 ```bash
-python Diet_Plan_Model/app.py
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+python Diet_Plan_Model/diet_model.py --train    # writes models/ *.pt + scalers
 ```
 
-Then open: **http://localhost:5000**
-
-- **Home**: Landing / login / signup  
-- **Diet**: Log in → diet form → generate plan → result page with “Generate Workout Plan”  
-- **Workout**: From result page or directly: **http://localhost:5000/workout/**  
-- **Progress**: **http://localhost:5000/progress** (requires login)
-
-Default run: `host='0.0.0.0'`, `port=5000`, `debug=True`. For production, use a WSGI server and turn off debug (see [Production Deployment](#production-deployment)).
-
----
-
-## Production Deployment
-
-### WSGI server (Gunicorn example)
-
-```bash
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 "Diet_Plan_Model.app:app"
-```
-
-Adjust `-w` (workers) and bind address as needed.
-
-### Checklist
-
-- [ ] Set `NUTRIFIT_SECRET` to a strong random value.
-- [ ] Use a dedicated MySQL user and strong password; set `SQLALCHEMY_DATABASE_URI` via env.
-- [ ] Run with `debug=False`.
-- [ ] Put the app behind a reverse proxy (e.g. Nginx) and use HTTPS.
-- [ ] Restrict DB access (firewall, no public bind).
-- [ ] Serve static assets via Nginx/CDN if desired; ensure `/workout/static/` and `/progress-tracking/` still work.
-- [ ] Optional: run `Work_Out_Model/train_model.py` to regenerate `workout_model.pkl` when dataset changes.
-
----
-
-## API Reference
-
-### Auth
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Home / login page |
-| POST | `/login` | Login (email, password) |
-| POST | `/signup` | Register (full_name, email, phone, password) |
-| GET | `/logout` | Logout |
-
-### Diet
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/diet-form` | Diet form (login required) |
-| POST | `/generate-plan` | Generate meal plan (form body) |
-| POST | `/predict_diet` | JSON API for diet prediction |
-| POST | `/swap_meal` | Get meal alternatives |
-| POST | `/get_meal_details` | Meal details by name/quantity |
-
-### Workout
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/workout/` | Workout form |
-| POST | `/workout/generate_plan` | Generate workout plan |
-| POST | `/workout/swap_exercise` | Exercise alternatives |
-
-### Progress
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/progress` | Progress page (HTML) |
-| GET | `/progress-tracking/<path>` | Static assets for progress |
-| GET/POST | `/api/weight-log` | Get or submit weight log entries |
-
-### Health
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check (no auth) |
-
----
-
-## Database Schema
-
-- **user**: `id`, `full_name`, `email`, `phone`, `password_hash`, `created_at`
-- **user_weight_logs**: `id`, `user_id`, `label`, `week_index`, `weight_kg`, `goal_mode` (and any other columns defined in `UserWeightLog` in `app.py`)
-
-Schema is created by SQLAlchemy from the models in `Diet_Plan_Model/app.py`. For migrations in production, consider Flask-Migrate (Alembic).
+Check which path is active: `GET /api/health` → `ml_backend: "neural" | "math"`.
 
 ---
 
 ## Testing
 
-- **Diet API**: `cd Diet_Plan_Model && python test_api.py` (if script exists and targets local `app`).
-- **Manual**: Use `/health`, then diet form → generate plan → workout → progress.
+```bash
+pip install -r backend/requirements.txt
+pytest backend/tests -q
+```
+
+The smoke suite covers signup/login/logout, auth enforcement, diet generation
+(7 days, ≥3 meals/day), workout generation, progress save/read + plateau, and a
+regression test that fat is 9 kcal/g.
 
 ---
 
-## Security
+## Configuration (environment variables)
 
-- Passwords hashed with Werkzeug (no plain text).
-- Use HTTPS and secure cookies in production.
-- Set a strong `NUTRIFIT_SECRET` and keep DB credentials out of version control (env vars or secrets manager).
-- Validate and sanitize all inputs; the app uses server-side validation for forms and API.
+Backend (`backend/.env`):
 
----
+| Variable            | Required (prod) | Description |
+|---------------------|:---:|---|
+| `NUTRIFIT_ENV`      |  –  | `development` \| `production` \| `testing` |
+| `NUTRIFIT_SECRET`   | ✅  | Signs session cookies. `python -c "import secrets;print(secrets.token_hex(32))"` |
+| `DATABASE_URL`      | ✅  | `mysql+pymysql://user:pass@host/nutrifit` or Postgres URL |
+| `CORS_ORIGINS`      |  –  | Only if calling the API cross-origin (not via the Next proxy) |
+| `RATELIMIT_STORAGE_URI` | – | `memory://` (single instance) or `redis://…` (multi-instance) |
 
-## Troubleshooting
+In production the app **refuses to start** without `NUTRIFIT_SECRET` and
+`DATABASE_URL`. No credentials are hardcoded anywhere.
 
-| Issue | What to check |
-|-------|----------------|
-| “No module named 'diet_model'” | Run from repo root: `python Diet_Plan_Model/app.py`; ensure `Diet_Plan_Model` is on Python path. |
-| “Workout blueprint” not registered | Ensure `Work_Out_Model/app/routes.py` and `Work_Out_Model/app/utils.py` exist; check console for import errors. |
-| DB connection error | Verify MySQL is running, database and user exist, and `SQLALCHEMY_DATABASE_URI` is correct. |
-| Charts or progress not loading | Confirm `/progress-tracking/` and `/workout/static/` are reachable; check browser console. |
-| Meal plan empty / errors | Confirm CSVs and model files exist in `Diet_Plan_Model/` and `diet_model.load_models()` succeeds. |
+Frontend (`frontend/.env.local`, and Vercel project env):
 
----
-
-## License & Contributing
-
-This project is open source. You may modify and use it according to your needs.
-
-To contribute:
-
-1. Fork the repository.
-2. Create a feature branch, make changes, and test (run app + optional tests).
-3. Submit a pull request with a clear description of the change.
+| Variable      | Description |
+|---------------|---|
+| `BACKEND_URL` | URL of the FastAPI backend the Next proxy forwards `/api/*` to |
 
 ---
 
-**NutriFit Pakistan** — AI-driven nutrition and fitness planning for healthier living.
+## Deployment
+
+**Frontend → Vercel:** import the repo, set the project **Root Directory** to
+`frontend`, and set `BACKEND_URL` to your backend's public URL.
+
+**Backend → any Python host** (Render/Railway/Fly/VM) via Docker:
+
+```bash
+docker build -f backend/Dockerfile -t nutrifit-api .
+docker run -p 5000:5000 --env-file backend/.env nutrifit-api
+```
+
+or the provided `render.yaml` blueprint. Production serves via
+`gunicorn` + `uvicorn` workers (see `backend/Procfile`). Put it behind HTTPS;
+secure cookies are enabled automatically when `NUTRIFIT_ENV=production`.
+
+For schema changes in production, add Alembic migrations (the app auto-creates
+tables on first run for convenience).
+
+---
+
+## API surface
+
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| POST | `/api/auth/signup` | – | Register |
+| POST | `/api/auth/login` | – | Log in (sets session cookie) |
+| POST | `/api/auth/logout` | ✅ | Log out |
+| GET | `/api/auth/me` | – | Session status |
+| POST | `/api/diet/generate` | ✅ | 7-day meal plan |
+| POST | `/api/diet/swap` | ✅ | Meal alternatives |
+| POST | `/api/diet/meal-details` | ✅ | Nutrition for a food/quantity |
+| POST | `/api/workout/generate` | ✅ | 6-day workout plan |
+| POST | `/api/workout/swap` | ✅ | Exercise alternatives |
+| GET/POST | `/api/progress/weights` | ✅ | Weekly weight log + plateau |
+| GET | `/api/health` | – | Health check |
+
+---
+
+## Security posture
+
+- Passwords hashed with PBKDF2-SHA256 (240k iterations, per-user salt).
+- Session cookies are signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production.
+- Rate limiting on auth and generation endpoints (via `slowapi`).
+- Security headers (`X-Content-Type-Options`, `X-Frame-Options`, HSTS in prod).
+- Pydantic validation on every request body; generic auth errors (no user enumeration).
+- Secrets and DB credentials come only from the environment.

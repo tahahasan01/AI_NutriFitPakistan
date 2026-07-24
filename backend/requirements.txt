@@ -1,0 +1,34 @@
+# NutriFit FastAPI backend requirements
+# Install:  pip install -r backend/requirements.txt
+# PyTorch is OPTIONAL — the API runs on the exact-formula path without it.
+# To enable the neural food ranker:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# --- Web framework ---
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29
+gunicorn>=21.2
+itsdangerous>=2.1          # required by Starlette SessionMiddleware
+python-multipart>=0.0.9    # form parsing (defensive)
+
+# --- Validation / settings ---
+pydantic>=2.6,<3.0
+email-validator>=2.1       # enables pydantic EmailStr
+python-dotenv>=1.0
+
+# --- Database ---
+SQLAlchemy>=2.0,<3.0
+PyMySQL>=1.1               # MySQL driver (prod)
+
+# --- Rate limiting ---
+slowapi>=0.1.9
+
+# --- ML / data ---
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+joblib>=1.3
+
+# --- Tests ---
+pytest>=8.0
+httpx>=0.27
