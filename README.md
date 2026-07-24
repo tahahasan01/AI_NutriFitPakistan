@@ -98,8 +98,9 @@ Open http://localhost:3000, sign up, and use Diet / Workout / Progress.
 ## Food dataset (accuracy)
 
 The food/snack tables are a **curated, per-100g, Atwater-consistent** dataset of
-Pakistani + common global foods, verified within ~6% of authoritative
-(USDA/standard) per-100g values. It is generated and validated by a script:
+**150 Pakistani + common global foods** (31 breakfast, 38 lunch, 38 dinner, 43
+snacks), verified within ~7% of authoritative (USDA/standard) per-100g values.
+It is generated and validated by a script:
 
 ```bash
 python Diet_Plan_Model/build_dataset.py
