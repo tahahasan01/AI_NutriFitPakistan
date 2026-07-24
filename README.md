@@ -95,19 +95,42 @@ Open http://localhost:3000, sign up, and use Diet / Workout / Progress.
 
 ---
 
+## Food dataset (accuracy)
+
+The food/snack tables are a **curated, per-100g, Atwater-consistent** dataset of
+Pakistani + common global foods, verified within ~6% of authoritative
+(USDA/standard) per-100g values. It is generated and validated by a script:
+
+```bash
+python Diet_Plan_Model/build_dataset.py
+```
+
+This rebuilds `cleaned_foods_dataset.csv` and `cleaned_snacks_dataset.csv`,
+validating that every row is per-100g, Atwater-consistent
+(`Calories = 4·carb + 4·protein + 9·fat − 2·fiber`), has non-zero macros, and
+that each meal type has enough variety. To add or correct a food, edit the
+`FOODS` / `SNACKS` tables in that script and re-run — validation blocks bad rows.
+
+> The original datasets mixed per-serving and per-100g values with ~14–21%
+> Atwater-inconsistent rows, ~6% zero-macro rows, and all-zero Sugars/Fiber
+> columns. That data was replaced because the model assumes per-100g.
+
 ## ML backends
 
 `diet_model.py` computes calorie/macro **targets** with the exact
 Mifflin–St Jeor equation and correct Atwater factors (protein/carb = 4 kcal/g,
-**fat = 9 kcal/g**). Food *ranking* uses a neural ranker **when PyTorch is
-installed**; otherwise it transparently falls back to the deterministic
-formula-scored path. Both paths are accurate for targets — torch only refines
-food ordering.
+**fat = 9 kcal/g**). Food *ranking* uses a neural ranker when trained models are
+present **and** PyTorch is installed; otherwise it uses the deterministic
+formula-scored path. Both paths are accurate for targets — the ranker only
+refines food ordering.
 
-Enable the neural ranker:
+The stale pre-trained models (trained on the old inconsistent data) were removed,
+so the app runs on the correct deterministic path by default. To (re)train the
+ranker on the current dataset:
 
 ```bash
 pip install torch --index-url https://download.pytorch.org/whl/cpu
+python Diet_Plan_Model/diet_model.py --train    # writes models/ *.pt + scalers
 ```
 
 Check which path is active: `GET /api/health` → `ml_backend: "neural" | "math"`.
