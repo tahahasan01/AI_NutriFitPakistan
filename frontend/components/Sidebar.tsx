@@ -74,15 +74,15 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function Sidebar({ open, onClose, collapsed }: { open: boolean; onClose: () => void; collapsed?: boolean }) {
   const pathname = usePathname();
   // close the mobile drawer whenever the route changes
   useEffect(() => { onClose(); }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
-      {/* Desktop fixed sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-ink/[.07] bg-paper-card/80 backdrop-blur-sm lg:block">
+      {/* Desktop fixed sidebar (hidden when collapsed) */}
+      <aside className={`fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-ink/[.07] bg-paper-card/80 backdrop-blur-sm ${collapsed ? "" : "lg:block"}`}>
         <SidebarContent />
       </aside>
 
