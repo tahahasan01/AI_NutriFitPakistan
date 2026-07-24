@@ -1,0 +1,12 @@
+frontend/
+.venv/
+node_modules/
+.next/
+.playwright-mcp/
+claude/
+*.db
+*.png
+*_run.log
+__pycache__/
+.pytest_cache/
+backend/tests/
