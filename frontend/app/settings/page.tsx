@@ -112,7 +112,7 @@ function SettingsInner() {
     <div className="mx-auto max-w-2xl space-y-6">
       <header className="animate-fade-up">
         <span className="eyebrow">Settings</span>
-        <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">Your account</h1>
+        <h1 className="mt-2 text-2xl font-semibold sm:text-5xl">Your account</h1>
       </header>
 
       {/* Appearance */}

@@ -51,7 +51,7 @@ export function BmiCard() {
 
       <div className="mt-6 flex items-end justify-between">
         <div>
-          <div className="font-display text-5xl font-semibold leading-none">{bmi ? bmi.toFixed(1) : "—"}</div>
+          <div className="font-display text-4xl font-semibold leading-none sm:text-5xl">{bmi ? bmi.toFixed(1) : "—"}</div>
           <div className="mt-1 text-xs uppercase tracking-wide text-ink-muted">Body Mass Index</div>
         </div>
         <span className={`badge ring-1 ${cat.cls}`}>{cat.label}</span>

@@ -53,7 +53,7 @@ function WorkoutInner() {
           <Dumbbell className="h-5 w-5" />
           <span className="text-sm font-semibold uppercase tracking-wide">Workout plan</span>
         </div>
-        <h1 className="mt-1 text-3xl font-extrabold">Your 6-day split</h1>
+        <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Your 6-day split</h1>
         <p className="text-ink-muted">Tailored to your goal and equipment.</p>
       </header>
 

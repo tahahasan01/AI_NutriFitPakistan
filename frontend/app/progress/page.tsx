@@ -57,7 +57,7 @@ function ProgressInner() {
           <LineIcon className="h-5 w-5" />
           <span className="text-sm font-semibold uppercase tracking-wide">Progress</span>
         </div>
-        <h1 className="mt-1 text-3xl font-extrabold">Track your weight</h1>
+        <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Track your weight</h1>
         <p className="text-ink-muted">Log weekly to see trends and plateau alerts.</p>
       </header>
 

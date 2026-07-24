@@ -18,7 +18,7 @@ function DashInner() {
     <div className="space-y-8">
       <header className="animate-fade-up">
         <span className="eyebrow">Dashboard</span>
-        <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">
+        <h1 className="mt-2 text-2xl font-semibold sm:text-5xl">
           Welcome back, <span className="italic">{user?.name?.split(" ")[0] || "athlete"}</span>.
         </h1>
         <p className="mt-2 text-ink-muted">Check your BMI, then jump into your plan.</p>

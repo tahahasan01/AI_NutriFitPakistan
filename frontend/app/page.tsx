@@ -13,7 +13,7 @@ import { MacroDonut, MacroLegend } from "@/components/MacroDonut";
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <div className="font-display text-3xl font-semibold text-ink sm:text-5xl">{value}</div>
+      <div className="font-display text-2xl font-semibold text-ink sm:text-5xl">{value}</div>
       <div className="mt-1 text-sm text-ink-muted">{label}</div>
     </div>
   );
@@ -80,20 +80,20 @@ export default function HomePage() {
           <span className="badge bg-brand-500/12 text-brand-500 ring-1 ring-brand-500/20">
             <Sparkles className="h-3.5 w-3.5 text-saffron-300" /> AI-assisted nutrition & fitness
           </span>
-          <h1 className="mt-6 font-display text-[3.4rem] font-semibold leading-[1.02] sm:text-7xl">
+          <h1 className="mt-6 font-display text-[2.5rem] font-semibold leading-[1.05] sm:text-7xl">
             Eat well.<br />Train smart.<br />
             <span className="italic text-flame">Actually</span> stick to it.
           </h1>
-          <p className="mt-7 max-w-lg text-lg leading-relaxed text-ink-soft animate-fade-up-1">
+          <p className="mt-7 max-w-lg text-base sm:text-lg leading-relaxed text-ink-soft animate-fade-up-1">
             Desi-first 7-day meal plans, home or gym workouts, and progress tracking —
             built on locally accurate, verified food data. Not another calorie calculator.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3 animate-fade-up-2">
-            <Link href="/signup" className="btn-accent px-7 py-3.5 text-base">
+            <Link href="/signup" className="btn-accent px-5 py-3 text-sm sm:px-7 sm:py-3.5 sm:text-base">
               Create free account <ArrowRight className="h-4 w-4" />
             </Link>
-            <a href="#how" className="btn-ghost px-6 py-3.5 text-base">
+            <a href="#how" className="btn-ghost px-5 py-3 text-sm sm:px-6 sm:py-3.5 sm:text-base">
               How it works <ArrowDown className="h-4 w-4" />
             </a>
           </div>
@@ -150,7 +150,7 @@ export default function HomePage() {
             ["6-day", "Home or gym splits"], ["±6%", "vs USDA references"],
           ].map(([v, l]) => (
             <div key={l} className="text-center">
-              <div className="font-display text-3xl font-semibold sm:text-5xl">{v}</div>
+              <div className="font-display text-2xl font-semibold sm:text-5xl">{v}</div>
               <div className="mt-1 text-sm text-white/80">{l}</div>
             </div>
           ))}
@@ -161,7 +161,7 @@ export default function HomePage() {
       <section className="space-y-12">
         <div className="max-w-2xl">
           <span className="eyebrow">Everything in one place</span>
-          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">A complete plan,<br />not just a calculator.</h2>
+          <h2 className="mt-3 text-2xl font-semibold sm:text-5xl">A complete plan,<br />not just a calculator.</h2>
           <p className="mt-4 text-ink-muted">
             Most apps stop at a number. NutriFit turns your goal into meals, workouts, and a feedback loop.
           </p>
@@ -186,7 +186,7 @@ export default function HomePage() {
       <section id="how" className="space-y-12">
         <div className="max-w-2xl">
           <span className="eyebrow">How it works</span>
-          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Three steps to your plan.</h2>
+          <h2 className="mt-3 text-2xl font-semibold sm:text-5xl">Three steps to your plan.</h2>
         </div>
         <div className="grid gap-10 sm:grid-cols-3">
           <Step n={1} title="Tell us about you" desc="Age, weight, height, goal, and activity — takes 20 seconds." />
@@ -199,7 +199,7 @@ export default function HomePage() {
       <section className="grid items-center gap-12 lg:grid-cols-[0.9fr,1.1fr]">
         <div>
           <span className="eyebrow">See it in action</span>
-          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Balanced macros,<br />real food.</h2>
+          <h2 className="mt-3 text-2xl font-semibold sm:text-5xl">Balanced macros,<br />real food.</h2>
           <p className="mt-4 text-ink-soft">
             Every day is built to hit your calorie and macro targets — using foods you actually eat.
             Here's a sample weight-loss day.
@@ -254,7 +254,7 @@ export default function HomePage() {
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-ember-400/20 blur-3xl" />
         <div className="relative mx-auto max-w-2xl text-center">
           <span className="badge bg-ember-400/15 text-ember-300 ring-1 ring-ember-400/20"><MapPin className="h-3.5 w-3.5" /> Built for Pakistan</span>
-          <h2 className="mt-4 text-4xl font-semibold sm:text-5xl">Nutrition data that fits your plate.</h2>
+          <h2 className="mt-4 text-2xl font-semibold sm:text-5xl">Nutrition data that fits your plate.</h2>
           <p className="mt-4 text-white/65">
             Generic apps guess at desi portions. We built a verified, per-100g dataset of Pakistani foods —
             so your biryani, nihari, and daal are counted correctly.
@@ -279,7 +279,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-3xl space-y-8">
         <div>
           <span className="eyebrow">FAQ</span>
-          <h2 className="mt-3 text-4xl font-semibold sm:text-5xl">Questions, answered.</h2>
+          <h2 className="mt-3 text-2xl font-semibold sm:text-5xl">Questions, answered.</h2>
         </div>
         <div className="space-y-3">
           <Faq q="Is NutriFit free?" a="Yes — create an account and generate diet and workout plans at no cost. No credit card required." />
@@ -292,11 +292,11 @@ export default function HomePage() {
 
       {/* ---------- FINAL CTA ---------- */}
       <section className="rounded-3xl border border-ink/[.07] bg-paper-card px-8 py-16 text-center shadow-soft">
-        <h2 className="text-4xl font-semibold sm:text-6xl">Start your plan <span className="italic text-flame">today</span>.</h2>
+        <h2 className="text-3xl font-semibold sm:text-6xl">Start your plan <span className="italic text-flame">today</span>.</h2>
         <p className="mx-auto mt-4 max-w-xl text-ink-muted">
           Join in under a minute and get a personalized 7-day meal plan and workout split.
         </p>
-        <Link href="/signup" className="btn-accent mx-auto mt-9 w-fit px-8 py-4 text-base">Create free account <ArrowRight className="h-4 w-4" /></Link>
+        <Link href="/signup" className="btn-accent mx-auto mt-9 w-fit px-6 py-3 text-sm sm:px-8 sm:py-4 sm:text-base">Create free account <ArrowRight className="h-4 w-4" /></Link>
       </section>
     </div>
   );
