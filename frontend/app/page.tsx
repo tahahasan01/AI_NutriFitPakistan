@@ -34,7 +34,7 @@ function Feature({ icon: Icon, title, desc, tint }: any) {
 function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
   return (
     <div>
-      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-600 font-display text-xl font-semibold text-lime-400">
+      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-600 font-display text-xl font-semibold text-ember-400">
         {n}
       </div>
       <h3 className="mt-4 text-xl font-semibold">{title}</h3>
@@ -73,11 +73,11 @@ export default function HomePage() {
     <div className="space-y-28 pb-10">
       {/* ---------- HERO ---------- */}
       <section className="relative grid items-center gap-12 pt-6 lg:grid-cols-[1.15fr,0.85fr] lg:pt-10">
-        <div aria-hidden className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-lime-300/30 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-ember-300/30 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute right-0 top-52 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" />
 
         <div className="relative animate-fade-up">
-          <span className="badge bg-brand-50 text-brand-700 ring-1 ring-brand-100">
+          <span className="badge bg-brand-500/12 text-brand-500 ring-1 ring-brand-500/20">
             <Sparkles className="h-3.5 w-3.5 text-saffron-300" /> AI-assisted nutrition & fitness
           </span>
           <h1 className="mt-6 font-display text-[3.4rem] font-semibold leading-[1.02] sm:text-7xl">
@@ -107,13 +107,13 @@ export default function HomePage() {
 
         {/* Product preview */}
         <div className="relative animate-scale-in lg:justify-self-end">
-          <div aria-hidden className="absolute -right-4 -top-4 hidden rotate-3 rounded-2xl bg-lime-400 px-3 py-1.5 text-xs font-bold text-brand-800 shadow-soft sm:block">
+          <div aria-hidden className="absolute -right-4 -top-4 hidden rotate-3 rounded-2xl bg-ember-400 px-3 py-1.5 text-xs font-bold text-brand-800 shadow-soft sm:block">
             Your plan, ready in 20s
           </div>
           <div className="card w-full max-w-md shadow-lift">
             <div className="flex items-center justify-between">
               <div className="eyebrow">Your daily target</div>
-              <span className="badge bg-brand-50 text-brand-700">Weight loss</span>
+              <span className="badge bg-brand-500/12 text-brand-500">Weight loss</span>
             </div>
             <div className="mt-4 flex items-center gap-5 border-b border-ink/[.07] pb-5">
               <MacroDonut protein={165} carbs={193} fat={86} centerLabel="2205" centerSub="kcal / day" size={128} />
@@ -132,15 +132,15 @@ export default function HomePage() {
       </section>
 
       {/* ---------- STATS BAND ---------- */}
-      <section className="rounded-3xl border border-ink/[.07] bg-brand-600 px-6 py-9 text-paper shadow-lift">
+      <section className="rounded-3xl border border-white/10 bg-night px-6 py-9 text-white shadow-lift">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           {[
             ["150+", "Desi & global foods"], ["7-day", "Calorie-matched plans"],
             ["6-day", "Home or gym splits"], ["±6%", "vs USDA references"],
           ].map(([v, l]) => (
             <div key={l} className="text-center">
-              <div className="font-display text-3xl font-semibold text-lime-400 sm:text-5xl">{v}</div>
-              <div className="mt-1 text-sm text-brand-100">{l}</div>
+              <div className="font-display text-3xl font-semibold text-ember-400 sm:text-5xl">{v}</div>
+              <div className="mt-1 text-sm text-white/65">{l}</div>
             </div>
           ))}
         </div>
@@ -156,17 +156,17 @@ export default function HomePage() {
           </p>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Feature icon={Target} tint="bg-brand-50 text-brand-600" title="TDEE-based targets"
+          <Feature icon={Target} tint="bg-paper-warm text-brand-500" title="TDEE-based targets"
             desc="Mifflin–St Jeor with correct Atwater macros (protein/carb 4, fat 9 kcal/g)." />
-          <Feature icon={Salad} tint="bg-saffron-50 text-saffron-400" title="Desi-first meals"
+          <Feature icon={Salad} tint="bg-paper-warm text-ember-500" title="Desi-first meals"
             desc="Biryani, daal, karahi, chaat — real Pakistani cuisine, portioned to your target." />
-          <Feature icon={RefreshCw} tint="bg-lime-100 text-lime-700" title="Smart swaps"
+          <Feature icon={RefreshCw} tint="bg-paper-warm text-ember-500" title="Smart swaps"
             desc="Don't like a meal? Swap it for a goal-aware alternative in one tap." />
-          <Feature icon={Dumbbell} tint="bg-brand-50 text-brand-600" title="Home & gym workouts"
+          <Feature icon={Dumbbell} tint="bg-paper-warm text-brand-500" title="Home & gym workouts"
             desc="6-day splits that match your equipment, with per-exercise calorie burn." />
-          <Feature icon={LineChart} tint="bg-saffron-50 text-saffron-400" title="Progress & plateau"
+          <Feature icon={LineChart} tint="bg-paper-warm text-ember-500" title="Progress & plateau"
             desc="Weekly weight tracking with trend charts and automatic plateau alerts." />
-          <Feature icon={ShieldCheck} tint="bg-lime-100 text-lime-700" title="Private & secure"
+          <Feature icon={ShieldCheck} tint="bg-paper-warm text-ember-500" title="Private & secure"
             desc="Hashed passwords, session auth, and your data never leaves your account." />
         </div>
       </section>
@@ -236,12 +236,12 @@ export default function HomePage() {
       </section>
 
       {/* ---------- BUILT FOR PAKISTAN ---------- */}
-      <section className="relative overflow-hidden rounded-3xl bg-brand-700 px-8 py-14 text-paper shadow-lift">
-        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-lime-400/15 blur-3xl" />
+      <section className="relative overflow-hidden rounded-3xl bg-night px-8 py-14 text-white shadow-lift">
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-ember-400/15 blur-3xl" />
         <div className="relative mx-auto max-w-2xl text-center">
-          <span className="badge bg-lime-400/15 text-lime-300 ring-1 ring-lime-400/20"><MapPin className="h-3.5 w-3.5" /> Built for Pakistan</span>
+          <span className="badge bg-ember-400/15 text-ember-300 ring-1 ring-ember-400/20"><MapPin className="h-3.5 w-3.5" /> Built for Pakistan</span>
           <h2 className="mt-4 text-4xl font-semibold sm:text-5xl">Nutrition data that fits your plate.</h2>
-          <p className="mt-4 text-brand-100">
+          <p className="mt-4 text-white/65">
             Generic apps guess at desi portions. We built a verified, per-100g dataset of Pakistani foods —
             so your biryani, nihari, and daal are counted correctly.
           </p>
@@ -253,9 +253,9 @@ export default function HomePage() {
             { icon: Star, title: "Goal-aware", desc: "Loss, gain, or maintain — macros shift to match." },
           ].map((f) => (
             <div key={f.title} className="text-center">
-              <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-lime-400/15 text-lime-300"><f.icon className="h-5 w-5" /></span>
+              <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-ember-400/15 text-ember-300"><f.icon className="h-5 w-5" /></span>
               <h3 className="mt-3 text-lg font-semibold">{f.title}</h3>
-              <p className="mt-1 text-sm text-brand-100">{f.desc}</p>
+              <p className="mt-1 text-sm text-white/65">{f.desc}</p>
             </div>
           ))}
         </div>

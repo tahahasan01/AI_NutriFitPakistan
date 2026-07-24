@@ -30,7 +30,7 @@ function DashInner() {
         <div className="space-y-4 animate-fade-up-2">
           {ACTIONS.map((c) => (
             <Link key={c.href} href={c.href} className="card card-hover group flex items-center gap-4">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-paper-warm text-brand-500 ring-1 ring-brand-500/20">
                 <c.icon className="h-6 w-6" />
               </span>
               <div className="flex-1">
@@ -41,12 +41,12 @@ function DashInner() {
             </Link>
           ))}
 
-          <div className="card bg-brand-700 text-paper">
+          <div className="card bg-night text-white">
             <div className="flex items-start gap-3">
-              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-lime-400" />
+              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-ember-400" />
               <div>
                 <div className="font-semibold">Tip of the day</div>
-                <p className="mt-0.5 text-sm text-brand-100">
+                <p className="mt-0.5 text-sm text-white/70">
                   Aim for protein at every meal — it keeps you full and protects muscle while losing fat.
                 </p>
               </div>

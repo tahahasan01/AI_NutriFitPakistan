@@ -64,9 +64,9 @@ function ProgressInner() {
       {/* Stat tiles */}
       <div className="grid grid-cols-3 gap-3 animate-fade-up">
         {[
-          { label: "Current", val: current != null ? `${current} kg` : "—", icon: Scale, color: "text-brand-600 bg-brand-50" },
-          { label: "Net change", val: net != null ? `${net > 0 ? "+" : ""}${net.toFixed(1)} kg` : "—", icon: LineIcon, color: (net ?? 0) <= 0 ? "text-brand-600 bg-brand-50" : "text-rose-600 bg-rose-50" },
-          { label: "Weeks logged", val: chartData.length ? `${chartData.length - 1}` : "0", icon: CheckCircle2, color: "text-saffron-400 bg-saffron-50" },
+          { label: "Current", val: current != null ? `${current} kg` : "—", icon: Scale, color: "text-brand-500 bg-brand-500/12" },
+          { label: "Net change", val: net != null ? `${net > 0 ? "+" : ""}${net.toFixed(1)} kg` : "—", icon: LineIcon, color: (net ?? 0) <= 0 ? "text-brand-500 bg-brand-500/12" : "text-rose-400 bg-rose-500/12" },
+          { label: "Weeks logged", val: chartData.length ? `${chartData.length - 1}` : "0", icon: CheckCircle2, color: "text-ember-500 bg-ember-500/12" },
         ].map((s) => (
           <div key={s.label} className="card">
             <span className={`grid h-9 w-9 place-items-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></span>
@@ -124,8 +124,8 @@ function ProgressInner() {
           </div>
 
           {plateau && (
-            <div className={`card flex items-start gap-3 ${plateau.detected ? "ring-1 ring-amber-200 bg-amber-50/60" : "ring-1 ring-brand-200 bg-brand-50/50"}`}>
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${plateau.detected ? "bg-amber-100 text-amber-700" : "bg-brand-100 text-brand-700"}`}>
+            <div className={`card flex items-start gap-3 ${plateau.detected ? "ring-1 ring-ember-500/25 bg-ember-500/8" : "ring-1 ring-brand-500/25 bg-brand-500/8"}`}>
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${plateau.detected ? "bg-ember-500/15 text-ember-500" : "bg-brand-500/15 text-brand-500"}`}>
                 {plateau.detected ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
               </span>
               <div>

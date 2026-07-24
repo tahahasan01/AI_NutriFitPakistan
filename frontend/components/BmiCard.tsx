@@ -11,10 +11,10 @@ const SEGMENTS = [
 ];
 
 function categorize(bmi: number) {
-  if (bmi < 18.5) return { label: "Underweight", cls: "text-saffron-400 bg-saffron-50 ring-saffron-100" };
-  if (bmi < 25) return { label: "Normal weight", cls: "text-brand-600 bg-brand-50 ring-brand-100" };
-  if (bmi < 30) return { label: "Overweight", cls: "text-saffron-400 bg-saffron-50 ring-saffron-100" };
-  return { label: "Obese", cls: "text-rose-600 bg-rose-50 ring-rose-100" };
+  if (bmi < 18.5) return { label: "Underweight", cls: "text-ember-500 bg-ember-500/12 ring-saffron-100" };
+  if (bmi < 25) return { label: "Normal weight", cls: "text-brand-500 bg-brand-500/12 ring-brand-100" };
+  if (bmi < 30) return { label: "Overweight", cls: "text-ember-500 bg-ember-500/12 ring-saffron-100" };
+  return { label: "Obese", cls: "text-rose-400 bg-rose-500/12 ring-rose-500/20" };
 }
 
 export function BmiCard() {
@@ -32,7 +32,7 @@ export function BmiCard() {
   return (
     <div className="card">
       <div className="flex items-center gap-2">
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-50 text-brand-600"><Scale className="h-5 w-5" /></span>
+        <span className="grid h-9 w-9 place-items-center rounded-lg bg-paper-warm text-brand-500"><Scale className="h-5 w-5" /></span>
         <h2 className="text-lg font-semibold">BMI calculator</h2>
       </div>
 

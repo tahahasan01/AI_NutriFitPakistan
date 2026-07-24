@@ -60,7 +60,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         {mode === "signup" && <p className="text-xs text-ink-faint">At least 8 characters.</p>}
       </div>
 
-      {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100">{error}</p>}
+      {error && <p className="rounded-lg bg-rose-500/12 px-3 py-2 text-sm text-rose-400 ring-1 ring-rose-500/20">{error}</p>}
 
       <button type="submit" className="btn-accent w-full py-3" disabled={busy}>
         {busy ? "Please wait…" : mode === "signup" ? "Create free account" : "Log in"}

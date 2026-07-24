@@ -25,27 +25,27 @@ export function AuthLayout({
   return (
     <div className="mx-auto grid min-h-[70vh] max-w-4xl items-stretch gap-0 overflow-hidden rounded-3xl border border-ink/[.07] bg-paper-card shadow-lift md:grid-cols-2">
       {/* Brand panel */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-brand-700 p-8 text-paper md:flex">
-        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-lime-400/15 blur-3xl" />
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-night p-8 text-white md:flex">
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-ember-400/15 blur-3xl" />
         <Link href="/" className="relative flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-lime-400 ring-1 ring-brand-500">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-ember-400 ring-1 ring-brand-500">
             <Leaf className="h-5 w-5" />
           </span>
-          <span className="font-display text-xl font-semibold">NutriFit<span className="text-lime-400"> PK</span></span>
+          <span className="font-display text-xl font-semibold">NutriFit<span className="text-ember-400"> PK</span></span>
         </Link>
         <div className="relative">
           <h2 className="font-display text-3xl font-semibold leading-tight">
-            Real plans for<br /><span className="italic text-lime-400">real</span> results.
+            Real plans for<br /><span className="italic text-ember-400">real</span> results.
           </h2>
           <ul className="mt-6 space-y-3">
             {POINTS.map((p) => (
-              <li key={p} className="flex items-start gap-2 text-sm text-brand-100">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-lime-400" /> {p}
+              <li key={p} className="flex items-start gap-2 text-sm text-white/70">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-ember-400" /> {p}
               </li>
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-brand-200">Estimates for planning, not medical advice.</p>
+        <p className="relative text-xs text-white/40">Estimates for planning, not medical advice.</p>
       </div>
 
       {/* Form panel */}

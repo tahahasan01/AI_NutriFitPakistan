@@ -29,7 +29,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-ink/[.06] bg-paper/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-lime-400 ring-1 ring-brand-700">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-ember-400 ring-1 ring-brand-700">
             <Leaf className="h-5 w-5" />
           </span>
           <span className="font-display text-xl font-semibold tracking-tight text-ink">
@@ -46,7 +46,7 @@ export function Navbar() {
                 <Link key={l.href} href={l.href}
                   className={`btn-chip ${active
                     ? "bg-brand-600 text-paper"
-                    : "text-ink-muted hover:bg-brand-50 hover:text-brand-700"}`}>
+                    : "text-ink-muted hover:bg-paper-warm hover:text-brand-500"}`}>
                   <Icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{l.label}</span>
                 </Link>

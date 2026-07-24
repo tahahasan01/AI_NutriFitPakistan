@@ -21,7 +21,7 @@ function Section({ icon: Icon, title, desc, children }: any) {
   return (
     <section className="card">
       <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600"><Icon className="h-5 w-5" /></span>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-paper-warm text-brand-500"><Icon className="h-5 w-5" /></span>
         <div className="flex-1">
           <h2 className="text-lg font-semibold">{title}</h2>
           {desc && <p className="text-sm text-ink-muted">{desc}</p>}
@@ -123,7 +123,7 @@ function SettingsInner() {
             return (
               <button key={t.v} onClick={() => setTheme(t.v)}
                 className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition ${
-                  active ? "border-brand-500 bg-brand-50 text-brand-700" : "border-ink/10 text-ink-muted hover:border-ink/20"}`}>
+                  active ? "border-brand-500 bg-brand-500/12 text-brand-500" : "border-ink/10 text-ink-muted hover:border-ink/20"}`}>
                 <t.icon className="h-5 w-5" />
                 <span className="text-sm font-medium">{t.label}</span>
               </button>
@@ -206,12 +206,12 @@ function SettingsInner() {
       <Section icon={ShieldAlert} title="Danger zone" desc="Permanently delete your account and all data.">
         {!confirmDelete ? (
           <button onClick={() => setConfirmDelete(true)}
-            className="btn w-full justify-center border border-rose-200 bg-rose-50 py-3 text-rose-700 hover:bg-rose-100">
+            className="btn w-full justify-center border border-rose-500/30 bg-rose-500/10 py-3 text-rose-700 hover:bg-rose-100">
             <Trash2 className="h-4 w-4" /> Delete my account
           </button>
         ) : (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
-            <p className="text-sm font-medium text-rose-800">This can't be undone. Delete your account and all logs?</p>
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
+            <p className="text-sm font-medium text-rose-400">This can't be undone. Delete your account and all logs?</p>
             <div className="mt-3 flex gap-2">
               <button onClick={deleteAccount} disabled={busy === "delete"}
                 className="btn bg-rose-600 px-4 py-2 text-white hover:bg-rose-700">

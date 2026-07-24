@@ -26,20 +26,21 @@ const config: Config = {
           muted: "rgb(var(--ink-muted) / <alpha-value>)",
           faint: "rgb(var(--ink-faint) / <alpha-value>)",
         },
-        // Dominant: deep pine green
+        // Accent: warm coral / red-orange — energetic + premium, used sparingly
         brand: {
-          50: "#eef4ef", 100: "#d6e7da", 200: "#aecfb6", 300: "#7db28c",
-          400: "#4f9066", 500: "#2f6b46", 600: "#245538", 700: "#1c442e",
-          800: "#153525", 900: "#0f2a1d",
+          50: "#fff4f0", 100: "#ffe4da", 200: "#ffc6b3", 300: "#ff9f81",
+          400: "#fb7854", 500: "#f2542d", 600: "#dd4222", 700: "#b8331a",
+          800: "#8f2917", 900: "#6b2013",
         },
-        // Pop accent
-        lime: {
-          50: "#f6faeb", 100: "#e9f4cf", 200: "#d3e9a0", 300: "#b8db6a",
-          400: "#9fca3d", 500: "#84cc16", 600: "#66a30d", 700: "#4d7c0f",
+        // Secondary energy accent: ember amber
+        ember: {
+          50: "#fff8ed", 100: "#ffefd0", 200: "#fddba1", 300: "#fcc267",
+          400: "#f7a63a", 500: "#ef8b1a", 600: "#d47110", 700: "#b05a10",
         },
-        // Desi warmth accent
+        // Fixed dark panel surface (dark in BOTH themes)
+        night: { DEFAULT: "#17181c", soft: "#1f2026", ring: "#2a2b32" },
         saffron: { 50: "#fdf6e9", 100: "#f9e7c2", 200: "#f0c977", 300: "#e8a317", 400: "#c9860c" },
-        macro: { protein: "#5b6ee1", carbs: "#e8a317", fat: "#e0577b", kcal: "#2f6b46" },
+        macro: { protein: "#8b93f8", carbs: "#f5a524", fat: "#f43f5e", kcal: "#f2542d" },
       },
       boxShadow: {
         soft: "0 1px 2px rgba(27,26,21,.05), 0 6px 20px rgba(27,26,21,.06)",

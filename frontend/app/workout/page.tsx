@@ -7,9 +7,9 @@ import { api, ApiError } from "@/lib/api";
 import { ACTIVITIES, GOALS, type Exercise, type WorkoutPlan } from "@/lib/types";
 
 const DIFF_COLOR: Record<string, string> = {
-  beginner: "bg-brand-50 text-brand-700 ring-brand-100",
-  intermediate: "bg-amber-50 text-amber-700 ring-amber-100",
-  expert: "bg-rose-50 text-rose-700 ring-rose-100",
+  beginner: "bg-brand-500/12 text-brand-500 ring-brand-500/20",
+  intermediate: "bg-ember-500/12 text-ember-500 ring-ember-500/25",
+  expert: "bg-rose-500/12 text-rose-400 ring-rose-500/25",
 };
 
 function WorkoutInner() {
@@ -75,7 +75,7 @@ function WorkoutInner() {
             <option value="Gym">Gym</option><option value="Home">Home</option></select></div>
         <div className="sm:col-span-3">
           <button className="btn-primary w-full py-3" disabled={busy}>{busy ? "Generating…" : "Generate workout plan"}</button>
-          {error && <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+          {error && <p className="mt-2 rounded-lg bg-rose-500/12 px-3 py-2 text-sm text-rose-400">{error}</p>}
         </div>
       </form>
 
@@ -83,14 +83,14 @@ function WorkoutInner() {
         <div className="space-y-6 animate-fade-up">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="card flex items-center gap-4">
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-brand-600"><Flame className="h-6 w-6" /></span>
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-paper-warm text-brand-500"><Flame className="h-6 w-6" /></span>
               <div>
                 <div className="text-2xl font-extrabold">{Math.round(plan.total_calories)} <span className="text-sm font-medium text-ink-muted">kcal</span></div>
                 <div className="text-sm text-ink-muted">Estimated weekly burn</div>
               </div>
             </div>
             <div className="card flex items-center gap-4">
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-saffron-50 text-saffron-400"><TrendingDown className="h-6 w-6" /></span>
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-paper-warm text-ember-500"><TrendingDown className="h-6 w-6" /></span>
               <div>
                 <div className="text-sm font-semibold">30-day projection</div>
                 <div className="text-sm text-ink-muted">{plan.chart_data.summary}</div>

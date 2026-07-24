@@ -90,7 +90,7 @@ function DietInner() {
           <button className="btn-primary w-full py-3" disabled={busy}>
             {busy ? "Generating…" : "Generate meal plan"}
           </button>
-          {error && <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+          {error && <p className="mt-2 rounded-lg bg-rose-500/12 px-3 py-2 text-sm text-rose-400">{error}</p>}
         </div>
       </form>
 
@@ -144,7 +144,7 @@ function DietInner() {
                 <div key={mi} className="card card-hover">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-3">
-                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-lg">
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-paper-warm text-lg">
                         {MEAL_ICON[MEAL_TYPES[mi]] || "🍽️"}
                       </span>
                       <div>
