@@ -93,13 +93,14 @@ async def security_headers(request: Request, call_next):
 
 
 # --- Routers ---
-from .routers import auth, diet, health, progress, workout  # noqa: E402
+from .routers import auth, diet, health, progress, tracking, workout  # noqa: E402
 
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(diet.router)
 app.include_router(workout.router)
 app.include_router(progress.router)
+app.include_router(tracking.router)
 
 
 @app.exception_handler(500)

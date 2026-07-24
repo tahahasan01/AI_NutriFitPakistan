@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Salad, Dumbbell, LineChart, LogOut, Leaf, LayoutDashboard } from "lucide-react";
+import { Salad, Dumbbell, LineChart, LogOut, Leaf, LayoutDashboard, CalendarDays } from "lucide-react";
 import { useAuth } from "@/app/providers";
 import { usePrefs } from "@/components/PrefsProvider";
 import { Avatar } from "@/components/Avatar";
 
 const links = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { href: "/log", label: "Today", icon: CalendarDays },
   { href: "/diet", label: "Diet", icon: Salad },
   { href: "/workout", label: "Workout", icon: Dumbbell },
   { href: "/progress", label: "Progress", icon: LineChart },

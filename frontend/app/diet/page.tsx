@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Salad, RefreshCw, Flame, Utensils } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Salad, RefreshCw, Flame, Utensils, Plus, Check } from "lucide-react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { MacroDonut, MacroLegend } from "@/components/MacroDonut";
 import { api, ApiError } from "@/lib/api";
-import { ACTIVITIES, GOALS, type DietPlan, type Meal } from "@/lib/types";
+import { ACTIVITIES, GOALS, type DietPlan, type Meal, type Profile } from "@/lib/types";
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
 const MEAL_ICON: Record<string, string> = { Breakfast: "🌅", Lunch: "🍲", Dinner: "🌙", Snack: "🍎" };
@@ -29,6 +29,16 @@ function DietInner() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [swapping, setSwapping] = useState<string | null>(null);
+  const [logged, setLogged] = useState<string | null>(null);
+
+  // Prefill from a saved profile if one exists.
+  useEffect(() => {
+    api.get<Profile>("/api/profile").then((p) => {
+      if (p.exists) setProfile({
+        age: p.age!, gender: p.gender!, weight: p.weight!, height: p.height!, goal: p.goal!, activity: p.activity!,
+      });
+    }).catch(() => {});
+  }, []);
 
   const num = (k: string, v: string) => setProfile((p) => ({ ...p, [k]: Number(v) }));
 
@@ -38,9 +48,23 @@ function DietInner() {
     try {
       const res = await api.post<DietPlan>("/api/diet/generate", { ...profile, allergies: [] });
       setPlan(res); setActiveDay(0);
+      // Persist the profile so targets power the dashboard + food diary.
+      api.put("/api/profile", profile).catch(() => {});
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to generate plan.");
     } finally { setBusy(false); }
+  }
+
+  async function logMeal(mealIdx: number, meal: Meal) {
+    const mealType = MEAL_TYPES[mealIdx] || "Snack";
+    setLogged(`${activeDay}-${mealIdx}`);
+    try {
+      await api.post("/api/log/meal", {
+        meal_type: mealType, food_name: meal.name, quantity_g: meal.quantity,
+        calories: meal.calories, protein: meal.protein, carbs: meal.carbs, fat: meal.fat,
+      });
+      setTimeout(() => setLogged(null), 1500);
+    } catch { setLogged(null); }
   }
 
   async function swap(dayIdx: number, mealIdx: number, meal: Meal) {
@@ -50,6 +74,8 @@ function DietInner() {
       const res = await api.post<{ alternatives: Meal[] }>("/api/diet/swap", {
         current_meal_name: meal.name, goal: profile.goal, meal_type: mealType, target_calories: meal.calories,
       });
+      // record the dislike as implicit feedback (training signal)
+      api.post("/api/log/feedback", { food_name: meal.name, meal_type: mealType, signal: "swap_out" }).catch(() => {});
       const alt = res.alternatives?.[0];
       if (alt && plan) {
         const copy = structuredClone(plan);
@@ -154,11 +180,17 @@ function DietInner() {
                         <div className="font-semibold leading-tight">{m.name}</div>
                       </div>
                     </div>
-                    <button onClick={() => swap(activeDay, mi, m)} disabled={swapping === `${activeDay}-${mi}`}
-                      className="btn-ghost px-2.5 py-1.5 text-xs">
-                      <RefreshCw className={`h-3.5 w-3.5 ${swapping === `${activeDay}-${mi}` ? "animate-spin" : ""}`} />
-                      Swap
-                    </button>
+                    <div className="flex shrink-0 gap-1.5">
+                      <button onClick={() => logMeal(mi, m)} disabled={logged === `${activeDay}-${mi}`}
+                        className={`px-2.5 py-1.5 text-xs ${logged === `${activeDay}-${mi}` ? "btn bg-brand-500/15 text-brand-600" : "btn-primary"}`}>
+                        {logged === `${activeDay}-${mi}` ? <><Check className="h-3.5 w-3.5" /> Added</> : <><Plus className="h-3.5 w-3.5" /> Log</>}
+                      </button>
+                      <button onClick={() => swap(activeDay, mi, m)} disabled={swapping === `${activeDay}-${mi}`}
+                        className="btn-ghost px-2.5 py-1.5 text-xs">
+                        <RefreshCw className={`h-3.5 w-3.5 ${swapping === `${activeDay}-${mi}` ? "animate-spin" : ""}`} />
+                        Swap
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-4 flex items-center gap-2 text-sm">
