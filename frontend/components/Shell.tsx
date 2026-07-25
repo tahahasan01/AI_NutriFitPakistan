@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, Leaf, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, Leaf, Settings, PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
+import { BottomNav } from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/Avatar";
 import { usePrefs } from "@/components/PrefsProvider";
@@ -15,8 +16,14 @@ const APP_ROUTES = ["/dashboard", "/coach", "/log", "/diet", "/workout", "/progr
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const { avatar } = usePrefs();
+
+  async function handleLogout() {
+    await logout();
+    router.push("/");
+  }
   const [open, setOpen] = useState(false);        // mobile drawer
   const [collapsed, setCollapsed] = useState(false); // desktop sidebar collapse
   const isApp = APP_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
@@ -68,20 +75,27 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
             <Link href="/settings" title="Settings"
               className={`grid h-9 w-9 place-items-center rounded-lg transition ${
-                pathname === "/settings" ? "bg-brand-500/12 text-brand-600" : "text-ink-muted hover:bg-paper-warm hover:text-ink"}`}>
+                pathname === "/settings" ? "bg-brand-400/15 text-brand-400" : "text-ink-muted hover:bg-paper-warm hover:text-ink"}`}>
               <Settings className="h-5 w-5" />
             </Link>
+            <button onClick={handleLogout} title="Log out"
+              className="grid h-9 w-9 place-items-center rounded-lg text-ink-muted transition hover:bg-paper-warm hover:text-brand-400">
+              <LogOut className="h-5 w-5" />
+            </button>
             <Link href="/settings" title="Account" className="ml-1">
               <Avatar src={avatar} name={user?.name} size={32} />
             </Link>
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
-        <footer className="mx-auto max-w-6xl px-6 py-10 text-center text-xs text-ink-faint">
+        <main className="mx-auto w-full max-w-6xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">{children}</main>
+        <footer className="mx-auto max-w-6xl px-6 pb-28 pt-6 text-center text-xs text-ink-faint lg:pb-10">
           NutriFit Pakistan · Estimates for planning, not medical advice.
         </footer>
       </div>
+
+      {/* Mobile app-style bottom tab bar */}
+      <BottomNav />
     </div>
   );
 }

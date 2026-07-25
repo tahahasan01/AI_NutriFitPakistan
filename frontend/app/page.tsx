@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,6 +9,27 @@ import {
 } from "lucide-react";
 import { useAuth } from "./providers";
 import { MacroDonut, MacroLegend } from "@/components/MacroDonut";
+
+// Reveal on scroll — fades + lifts content into view.
+function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setShown(true); io.disconnect(); }
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} style={{ transitionDelay: `${delay}ms` }}
+      className={`transition-all duration-700 ease-[cubic-bezier(.16,1,.3,1)] ${shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"} ${className}`}>
+      {children}
+    </div>
+  );
+}
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -21,12 +42,14 @@ function Stat({ value, label }: { value: string; label: string }) {
 
 function Feature({ icon: Icon, title, desc, tint }: any) {
   return (
-    <div className="card card-hover">
-      <span className={`grid h-11 w-11 place-items-center rounded-xl ${tint}`}>
+    <div className="group relative overflow-hidden rounded-2xl border border-ink/[.08] bg-paper-card p-5 transition-all duration-300 hover:-translate-y-1.5 hover:border-brand-400/40 hover:shadow-glow">
+      {/* hover glow wash */}
+      <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-400/0 blur-2xl transition-all duration-500 group-hover:bg-brand-400/20" />
+      <span className={`relative grid h-11 w-11 place-items-center rounded-xl ${tint} transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
         <Icon className="h-5 w-5" />
       </span>
-      <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-      <p className="mt-1 text-sm leading-relaxed text-ink-muted">{desc}</p>
+      <h3 className="relative mt-4 text-lg font-semibold">{title}</h3>
+      <p className="relative mt-1 text-sm leading-relaxed text-ink-muted">{desc}</p>
     </div>
   );
 }
@@ -34,7 +57,7 @@ function Feature({ icon: Icon, title, desc, tint }: any) {
 function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
   return (
     <div>
-      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-600 font-display text-xl font-semibold text-ember-400">
+      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-400/10 font-display text-xl font-bold text-brand-400 ring-1 ring-brand-400/25">
         {n}
       </div>
       <h3 className="mt-4 text-xl font-semibold">{title}</h3>
@@ -72,21 +95,24 @@ export default function HomePage() {
   return (
     <div className="space-y-28 pb-10">
       {/* ---------- HERO ---------- */}
-      <section className="relative grid items-start gap-8 pt-2 lg:grid-cols-[1.1fr,0.9fr] lg:pt-4">
-        <div aria-hidden className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-ember-300/30 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute right-0 top-52 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" />
-
-        <div className="relative animate-fade-up">
-          <span className="badge bg-brand-500/12 text-brand-500 ring-1 ring-brand-500/20">
-            <Sparkles className="h-3.5 w-3.5 text-saffron-300" /> AI-assisted nutrition & fitness
+      <section className="relative grid items-start gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:items-center lg:pt-6">
+        {/* Full-bleed athletic background for the first screen (mobile) */}
+        <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[100dvh] w-screen -translate-x-1/2 -translate-y-24 overflow-hidden lg:hidden">
+          <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1600&auto=format&fit=crop"
+            alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-black/68" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black" />
+        </div>
+        <div className="relative flex min-h-[calc(100dvh-8rem)] flex-col justify-center py-6 animate-fade-up lg:block lg:min-h-0 lg:py-0 lg:pt-4">
+          <span className="badge w-fit bg-brand-400/10 text-brand-400 ring-1 ring-brand-400/20">
+            <Sparkles className="h-3.5 w-3.5" /> AI-assisted nutrition & fitness
           </span>
           <h1 className="mt-4 font-display text-[2rem] font-semibold leading-[1.07] sm:text-4xl lg:text-5xl">
             Eat well. Train smart.<br />
             <span className="italic text-flame">Actually</span> stick to it.
           </h1>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-ink-soft animate-fade-up-1 sm:text-lg">
-            Desi-first 7-day meal plans, home or gym workouts, and progress tracking —
-            built on locally accurate, verified food data. Not another calorie calculator.
+          <p className="mt-4 max-w-md text-base leading-relaxed text-ink-muted animate-fade-up-1 sm:text-lg">
+            Desi-first meal plans, home &amp; gym workouts, and progress tracking — on verified food data.
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3 animate-fade-up-2">
@@ -107,32 +133,34 @@ export default function HomePage() {
 
         {/* Hero image + overlapping preview card */}
         <div className="relative animate-scale-in lg:justify-self-end">
-          <div className="overflow-hidden rounded-[1.75rem] shadow-lift ring-1 ring-ink/[.06]">
+          <div className="relative overflow-hidden rounded-[1.75rem] shadow-lift ring-1 ring-brand-400/15">
             <img
-              src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=85&w=2400&auto=format&fit=crop"
-              alt="Fresh, balanced desi-friendly meals"
-              className="h-56 w-full object-cover sm:h-72 lg:h-[360px]"
+              src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=85&w=2400&auto=format&fit=crop"
+              alt="Athlete training hard"
+              className="h-64 w-full object-cover grayscale-[.15] sm:h-80 lg:h-[380px]"
               loading="eager"
             />
-            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent" />
-            <div aria-hidden className="absolute right-4 top-4 rotate-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-brand-600 shadow-soft backdrop-blur">
-              Ready in 20s
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A0B0A] via-[#0A0B0A]/25 to-transparent" />
+            <div aria-hidden className="pointer-events-none absolute -inset-px rounded-[1.75rem] ring-1 ring-inset ring-white/5" />
+            <div aria-hidden className="pointer-events-none absolute right-0 top-0 h-40 w-40 bg-gradient-to-bl from-brand-400/25 to-transparent blur-2xl" />
+            <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-brand-400 px-3 py-1.5 text-xs font-bold text-night shadow-glow">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-night" /> Ready in 20s
             </div>
           </div>
-          <div className="relative z-10 mx-3 -mt-14 card shadow-lift sm:mx-6">
+          <div className="relative z-10 mx-2 -mt-16 rounded-3xl border border-white/[.08] bg-paper-card/95 p-6 shadow-lift backdrop-blur-xl sm:mx-6 sm:p-8">
             <div className="flex items-center justify-between">
               <div className="eyebrow">Your daily target</div>
-              <span className="badge bg-brand-500/12 text-brand-500">Weight loss</span>
+              <span className="badge bg-brand-400/15 text-brand-400 ring-1 ring-brand-400/20">Weight loss</span>
             </div>
-            <div className="mt-4 flex items-center gap-5 border-b border-ink/[.07] pb-5">
-              <MacroDonut protein={165} carbs={193} fat={86} centerLabel="2205" centerSub="kcal / day" size={120} />
+            <div className="mt-6 flex items-center gap-6 border-b border-white/[.08] pb-6">
+              <MacroDonut protein={165} carbs={193} fat={86} centerLabel="2205" centerSub="kcal / day" size={128} />
               <MacroLegend protein={165} carbs={193} fat={86} />
             </div>
-            <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+            <div className="mt-6 grid grid-cols-3 gap-3 text-center">
               {[["2594", "TDEE"], ["165g", "Protein"], ["7-day", "Plan"]].map(([v, l]) => (
-                <div key={l} className="rounded-xl bg-paper-warm px-2 py-3">
-                  <div className="font-display text-lg font-semibold text-brand-600">{v}</div>
-                  <div className="text-[11px] uppercase tracking-wide text-ink-muted">{l}</div>
+                <div key={l} className="rounded-2xl bg-paper-warm/70 px-2 py-4">
+                  <div className="font-display text-xl font-bold text-brand-400">{v}</div>
+                  <div className="mt-0.5 text-[11px] uppercase tracking-wide text-ink-muted">{l}</div>
                 </div>
               ))}
             </div>
@@ -141,17 +169,17 @@ export default function HomePage() {
       </section>
 
       {/* ---------- STATS BAND ---------- */}
-      <section className="relative overflow-hidden rounded-3xl px-6 py-10 text-white shadow-lift"
-        style={{ backgroundImage: "linear-gradient(120deg, #cf2233 0%, #f2542d 45%, #f7a63a 100%)" }}>
-        <div aria-hidden className="pointer-events-none absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-        <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-4">
+      <section className="relative overflow-hidden rounded-3xl border border-white/[.08] bg-paper-warm/60 px-6 py-12 sm:py-14">
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-400/10 blur-3xl" />
+        <div className="relative grid grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-4">
           {[
             ["150+", "Desi & global foods"], ["7-day", "Calorie-matched plans"],
             ["6-day", "Home or gym splits"], ["±6%", "vs USDA references"],
-          ].map(([v, l]) => (
-            <div key={l} className="text-center">
-              <div className="font-display text-2xl font-semibold sm:text-5xl">{v}</div>
-              <div className="mt-1 text-sm text-white/80">{l}</div>
+          ].map(([v, l], i) => (
+            <div key={l} className="relative text-center sm:text-left">
+              {i > 0 && <span aria-hidden className="absolute -left-3 top-1 hidden h-12 w-px bg-white/10 sm:block" />}
+              <div className="font-display text-4xl font-bold text-brand-400 sm:text-5xl">{v}</div>
+              <div className="mt-2 text-sm text-ink-muted">{l}</div>
             </div>
           ))}
         </div>
@@ -167,18 +195,18 @@ export default function HomePage() {
           </p>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Feature icon={Target} tint="bg-paper-warm text-brand-500" title="TDEE-based targets"
-            desc="Mifflin–St Jeor with correct Atwater macros (protein/carb 4, fat 9 kcal/g)." />
-          <Feature icon={Salad} tint="bg-paper-warm text-ember-500" title="Desi-first meals"
-            desc="Biryani, daal, karahi, chaat — real Pakistani cuisine, portioned to your target." />
-          <Feature icon={RefreshCw} tint="bg-paper-warm text-ember-500" title="Smart swaps"
-            desc="Don't like a meal? Swap it for a goal-aware alternative in one tap." />
-          <Feature icon={Dumbbell} tint="bg-paper-warm text-brand-500" title="Home & gym workouts"
-            desc="6-day splits that match your equipment, with per-exercise calorie burn." />
-          <Feature icon={LineChart} tint="bg-paper-warm text-ember-500" title="Progress & plateau"
-            desc="Weekly weight tracking with trend charts and automatic plateau alerts." />
-          <Feature icon={ShieldCheck} tint="bg-paper-warm text-ember-500" title="Private & secure"
-            desc="Hashed passwords, session auth, and your data never leaves your account." />
+          {[
+            { icon: Target, title: "TDEE-based targets", desc: "Mifflin–St Jeor with correct Atwater macros (protein/carb 4, fat 9 kcal/g)." },
+            { icon: Salad, title: "Desi-first meals", desc: "Biryani, daal, karahi, chaat — real Pakistani cuisine, portioned to your target." },
+            { icon: RefreshCw, title: "Smart swaps", desc: "Don't like a meal? Swap it for a goal-aware alternative in one tap." },
+            { icon: Dumbbell, title: "Home & gym workouts", desc: "6-day splits that match your equipment, with per-exercise calorie burn." },
+            { icon: LineChart, title: "Progress & plateau", desc: "Weekly weight tracking with trend charts and automatic plateau alerts." },
+            { icon: ShieldCheck, title: "Private & secure", desc: "Hashed passwords, session auth, and your data never leaves your account." },
+          ].map((f, i) => (
+            <Reveal key={f.title} delay={(i % 3) * 90}>
+              <Feature icon={f.icon} tint="bg-brand-400/10 text-brand-400" title={f.title} desc={f.desc} />
+            </Reveal>
+          ))}
         </div>
       </section>
 
@@ -196,12 +224,14 @@ export default function HomePage() {
             { src: "photo-1546069901-ba9599a7e63c", label: "Fresh & lean" },
             { src: "photo-1571019613454-1cb2f99b2d8b", label: "Home & gym" },
           ].map((g) => (
-            <div key={g.label} className="group relative overflow-hidden rounded-2xl shadow-soft ring-1 ring-ink/[.06]">
+            <div key={g.label} className="group relative overflow-hidden rounded-2xl ring-1 ring-white/10 transition duration-300 hover:ring-brand-400/50">
               <img src={`https://images.unsplash.com/${g.src}?q=85&w=1400&auto=format&fit=crop`}
                 alt={g.label} loading="lazy"
-                className="h-40 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-56" />
-              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-ink/65 via-ink/10 to-transparent" />
-              <span className="absolute bottom-3 left-3 text-sm font-semibold text-white">{g.label}</span>
+                className="h-40 w-full object-cover transition duration-500 group-hover:scale-110 sm:h-56" />
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+              <span className="absolute bottom-3 left-3 flex items-center gap-1.5 text-sm font-semibold text-white">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />{g.label}
+              </span>
             </div>
           ))}
         </div>

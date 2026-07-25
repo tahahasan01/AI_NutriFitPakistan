@@ -11,14 +11,15 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        display: ["var(--font-fraunces)", "Georgia", "serif"],
+        display: ["var(--font-display)", "var(--font-inter)", "system-ui", "sans-serif"],
       },
       colors: {
-        // Warm paper system — CSS-variable driven so it flips in dark mode
+        // Surfaces — CSS-variable driven (dark by default, optional light)
         paper: {
           DEFAULT: "rgb(var(--paper) / <alpha-value>)",
           warm: "rgb(var(--paper-warm) / <alpha-value>)",
           card: "rgb(var(--paper-card) / <alpha-value>)",
+          elevated: "rgb(var(--paper-elevated) / <alpha-value>)",
         },
         ink: {
           DEFAULT: "rgb(var(--ink) / <alpha-value>)",
@@ -26,28 +27,33 @@ const config: Config = {
           muted: "rgb(var(--ink-muted) / <alpha-value>)",
           faint: "rgb(var(--ink-faint) / <alpha-value>)",
         },
-        // Accent: warm coral / red-orange — energetic + premium, used sparingly
+        // PRIMARY — electric lime (the one punch color)
         brand: {
-          50: "#fff4f0", 100: "#ffe4da", 200: "#ffc6b3", 300: "#ff9f81",
-          400: "#fb7854", 500: "#f2542d", 600: "#dd4222", 700: "#b8331a",
-          800: "#8f2917", 900: "#6b2013",
+          50: "#f6ffe4", 100: "#eaffbf", 200: "#d6ff85", 300: "#c2fb4d",
+          400: "#b6ff3c", 500: "#a3e635", 600: "#84cc16", 700: "#65a30d",
+          800: "#4d7c0f", 900: "#3f6212",
         },
-        // Secondary energy accent: ember amber
+        // SECONDARY — teal (for gradients + soft accents). Kept name "ember"
+        // so existing components pick up the new palette automatically.
         ember: {
-          50: "#fff8ed", 100: "#ffefd0", 200: "#fddba1", 300: "#fcc267",
-          400: "#f7a63a", 500: "#ef8b1a", 600: "#d47110", 700: "#b05a10",
+          50: "#effcf9", 100: "#cbf6ee", 200: "#99ecdd", 300: "#5eead4",
+          400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e",
         },
-        // Brand logo green (kept from the original identity)
-        leaf: { 300: "#7db28c", 400: "#4f9066", 500: "#2f6b46", 600: "#245538", 700: "#1c442e" },
-        // Fixed dark panel surface (dark in BOTH themes)
-        night: { DEFAULT: "#17181c", soft: "#1f2026", ring: "#2a2b32" },
-        saffron: { 50: "#fdf6e9", 100: "#f9e7c2", 200: "#f0c977", 300: "#e8a317", 400: "#c9860c" },
-        macro: { protein: "#8b93f8", carbs: "#f5a524", fat: "#f43f5e", kcal: "#f2542d" },
+        // Emerald (gradient endpoint) + logo green
+        spring: { 300: "#6ee7a8", 400: "#34d399", 500: "#22c55e", 600: "#16a34a" },
+        leaf: { 300: "#6ee7a8", 400: "#34d399", 500: "#22c55e", 600: "#16a34a", 700: "#15803d" },
+        // Soft lime-gold sparkle accents (kept name "saffron")
+        saffron: { 50: "#fbffe8", 100: "#f4ffc2", 200: "#e8ff85", 300: "#d6f94a", 400: "#bde30f" },
+        // Fixed dark panel surface
+        night: { DEFAULT: "#0d0f0e", soft: "#141614", ring: "#242824" },
+        // Macro data-viz (readable on dark)
+        macro: { protein: "#8b93f8", carbs: "#2dd4bf", fat: "#f43f5e", kcal: "#a3e635" },
       },
       boxShadow: {
-        soft: "0 1px 2px rgba(27,26,21,.05), 0 6px 20px rgba(27,26,21,.06)",
-        lift: "0 12px 40px -8px rgba(27,26,21,.16)",
-        pop: "0 6px 0 0 #1c442e",
+        soft: "0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35)",
+        lift: "0 20px 50px -12px rgba(0,0,0,.6)",
+        glow: "0 0 0 1px rgba(182,255,60,.15), 0 8px 30px -6px rgba(163,230,53,.35)",
+        pop: "0 6px 0 0 #4d7c0f",
       },
       borderRadius: { xl: "0.875rem", "2xl": "1.25rem", "3xl": "1.75rem" },
       keyframes: {
