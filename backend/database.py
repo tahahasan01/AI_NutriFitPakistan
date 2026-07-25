@@ -9,13 +9,29 @@ from .settings import get_settings
 
 settings = get_settings()
 
+
+def _normalize_db_url(url: str) -> str:
+    """Ensure the psycopg (v3) driver is used for Postgres URLs.
+
+    Managed providers (Neon/Vercel) inject `postgres://` or `postgresql://`,
+    which SQLAlchemy maps to psycopg2. We ship psycopg v3, so force that driver.
+    """
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
+
+
+DB_URL = _normalize_db_url(settings.DATABASE_URL)
+
 # SQLite needs check_same_thread=False for use across FastAPI's threadpool.
 _connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
+if DB_URL.startswith("sqlite"):
     _connect_args = {"check_same_thread": False}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    DB_URL,
     connect_args=_connect_args,
     pool_pre_ping=True,
     pool_recycle=280,
