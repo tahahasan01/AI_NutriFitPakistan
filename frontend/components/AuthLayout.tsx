@@ -17,7 +17,7 @@ export function AuthLayout({
   }, [loading, user, router]);
 
   return (
-    <div className="relative -mx-4 -my-8 flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 py-12 sm:-mx-6 sm:px-6">
+    <div className="relative left-1/2 w-screen -translate-x-1/2 -mt-8 -mb-8 flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 py-12 sm:px-6">
       {/* Athletic background */}
       <img aria-hidden loading="eager"
         src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=85&w=2000&auto=format&fit=crop"
