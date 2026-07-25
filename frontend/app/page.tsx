@@ -103,7 +103,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-black/68" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black" />
         </div>
-        <div className="relative flex min-h-[calc(100dvh-9rem)] flex-col justify-start pt-4 animate-fade-up sm:justify-center sm:pt-0 lg:block lg:min-h-0 lg:pt-4">
+        <div className="relative flex min-h-[calc(100dvh-8rem)] flex-col justify-center py-6 animate-fade-up lg:block lg:min-h-0 lg:py-0 lg:pt-4">
           <span className="badge w-fit bg-brand-400/10 text-brand-400 ring-1 ring-brand-400/20">
             <Sparkles className="h-3.5 w-3.5" /> AI-assisted nutrition & fitness
           </span>
