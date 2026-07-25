@@ -53,3 +53,9 @@ out/
 /redesign_*.png
 /*-page-*.png
 /*.png
+
+.vercel
+
+# Local tooling / test artifacts
+.claude/
+.playwright-mcp/

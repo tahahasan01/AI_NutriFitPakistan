@@ -11,7 +11,7 @@ import { Avatar } from "@/components/Avatar";
 import { usePrefs } from "@/components/PrefsProvider";
 import { useAuth } from "@/app/providers";
 
-const APP_ROUTES = ["/dashboard", "/log", "/diet", "/workout", "/progress", "/settings"];
+const APP_ROUTES = ["/dashboard", "/coach", "/log", "/diet", "/workout", "/progress", "/settings"];
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,6 +20,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);        // mobile drawer
   const [collapsed, setCollapsed] = useState(false); // desktop sidebar collapse
   const isApp = APP_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+
+  // The AI Coach is a full-screen, ChatGPT-style experience with its own chrome.
+  const isCoach = pathname === "/coach" || pathname.startsWith("/coach/");
+  if (isCoach) {
+    return <>{children}</>;
+  }
 
   if (!isApp) {
     return (

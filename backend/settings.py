@@ -47,6 +47,15 @@ class Settings:
         # Next.js proxy). With the proxy, requests are same-origin and this stays empty.
         self.CORS_ORIGINS: List[str] = _split_csv(os.environ.get("CORS_ORIGINS", ""))
 
+        # --- AI assistant (optional; feature disabled if no provider key) ---
+        # Supports Groq / OpenAI-compatible and Anthropic. First key found wins,
+        # in this order: Groq, OpenAI, Anthropic.
+        self.GROQ_API_KEY: str | None = os.environ.get("GROQ_API_KEY")
+        self.OPENAI_API_KEY: str | None = os.environ.get("OPENAI_API_KEY")
+        self.ANTHROPIC_API_KEY: str | None = os.environ.get("ANTHROPIC_API_KEY")
+        # Optional model override; each provider has a sensible default otherwise.
+        self.AI_MODEL: str = os.environ.get("NUTRIFIT_AI_MODEL", "").strip()
+
         # --- Misc ---
         self.RATELIMIT_STORAGE_URI: str = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
         self.AUTO_CREATE_DB: bool = os.environ.get("AUTO_CREATE_DB", "1") == "1"

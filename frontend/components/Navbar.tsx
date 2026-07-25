@@ -6,6 +6,7 @@ import { Salad, Dumbbell, LineChart, LogOut, Leaf, LayoutDashboard, CalendarDays
 import { useAuth } from "@/app/providers";
 import { usePrefs } from "@/components/PrefsProvider";
 import { Avatar } from "@/components/Avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const links = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -71,6 +72,7 @@ export function Navbar() {
               <Link href="/signup" className="btn-accent px-4 py-2">Get started</Link>
             </>
           )}
+          <ThemeToggle />
         </nav>
       </div>
     </header>

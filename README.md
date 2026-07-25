@@ -35,6 +35,16 @@ SQLAlchemy · Neon/Postgres · deployed on Vercel.
 
 ## Features
 
+**AI Coach** *(new)*
+- 💬 **Conversational assistant** grounded in your profile, today's log, and the
+  verified desi dataset. It does two things in one chat:
+  - **Natural-language meal logging** — *"aloo gosht with 2 roti and a lassi"* is
+    parsed into foods + portions + macros and logged for you.
+  - **Coaching** — *"can I eat biryani tonight and stay on target?"* answered
+    against your remaining calorie/macro budget, with swaps.
+- Powered by Claude (tool-use). Optional: set `ANTHROPIC_API_KEY` to enable it;
+  the app runs fine without it.
+
 **Nutrition**
 - 🍽️ **7-day meal plans** matched to your calorie *and* macro targets
   (protein / carbs / fat), using real Pakistani meals — biryani, karahi, daal,
@@ -259,6 +269,11 @@ All routes are under `/api`. ✅ = requires an authenticated session cookie.
 | GET | `/api/log/summary` | ✅ | Today's totals, streak, week trend |
 | POST | `/api/log/feedback` | ✅ | Like/dislike signal for a food |
 
+### AI Coach
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| POST | `/api/ai/chat` | ✅ | Conversational coach + NL meal logging (Claude tool-use) |
+
 ### Progress & health
 | Method | Endpoint | Auth | Description |
 |---|---|:---:|---|
@@ -293,6 +308,8 @@ production schema changes.
 | `DATABASE_URL` | ✅ | `postgresql://…` (Neon) or `mysql+pymysql://…`; `postgres://` is auto-normalized to `psycopg` v3 |
 | `AUTO_CREATE_DB` | – | `1` to create tables on startup |
 | `CORS_ORIGINS` | – | Only if calling the API cross-origin (not via the Next proxy) |
+| `ANTHROPIC_API_KEY` | – | Enables the **AI Coach**; feature is off if unset |
+| `NUTRIFIT_AI_MODEL` | – | Claude model for the coach (default `claude-sonnet-5`) |
 | `RATELIMIT_STORAGE_URI` | – | `memory://` (single instance) or `redis://…` (multi-instance) |
 
 In production the app **refuses to start** without `NUTRIFIT_SECRET` and
@@ -365,11 +382,12 @@ regression test that fat is counted at 9 kcal/g.
 
 ## Roadmap
 
-- Recipe-level meal composition (multiple foods per meal) for even tighter macro
-  fit and more realistic portions.
-- Barcode / photo food logging.
-- Deeper workout personalization (equipment inventory, progressive overload).
-- Curated per-exercise demo videos (replace search links).
+- ✅ **AI Coach** — conversational assistant + natural-language meal logging.
+- 📷 **Photo meal logging** — snap a plate → macros (Claude vision), into the same coach.
+- 📈 **Adaptive targets** — dynamic TDEE from logged weight + intake trends.
+- 🧾 Recipe-level meal composition (multiple foods per meal) for tighter macro fit.
+- 🏋️ Deeper workout personalization (equipment inventory, progressive overload).
+- ▶️ Curated per-exercise demo videos (replace search links).
 
 ---
 
