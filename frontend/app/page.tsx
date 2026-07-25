@@ -95,7 +95,7 @@ export default function HomePage() {
   return (
     <div className="space-y-28 pb-10">
       {/* ---------- HERO ---------- */}
-      <section className="relative grid items-start gap-8 lg:min-h-[calc(100vh-8rem)] lg:grid-cols-[1.1fr,0.9fr] lg:items-center lg:pt-0">
+      <section className="relative grid items-start gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:items-center lg:pt-6">
         {/* Full-bleed athletic background for the first screen (mobile) */}
         <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[100dvh] w-screen -translate-x-1/2 -translate-y-24 overflow-hidden lg:hidden">
           <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1600&auto=format&fit=crop"
