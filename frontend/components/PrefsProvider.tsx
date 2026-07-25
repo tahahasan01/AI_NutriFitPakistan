@@ -22,18 +22,18 @@ function applyTheme(theme: Theme) {
 }
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [avatar, setAvatarState] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = (localStorage.getItem(THEME_KEY) as Theme) || "light";
+    const t = (localStorage.getItem(THEME_KEY) as Theme) || "dark";
     setThemeState(t);
     applyTheme(t);
     setAvatarState(localStorage.getItem(AVATAR_KEY));
 
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onSystem = () => {
-      if ((localStorage.getItem(THEME_KEY) || "light") === "system") applyTheme("system");
+      if ((localStorage.getItem(THEME_KEY) || "dark") === "system") applyTheme("system");
     };
     mq.addEventListener("change", onSystem);
     return () => mq.removeEventListener("change", onSystem);

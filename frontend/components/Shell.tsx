@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Leaf, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
+import { BottomNav } from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/Avatar";
 import { usePrefs } from "@/components/PrefsProvider";
@@ -77,11 +78,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
-        <footer className="mx-auto max-w-6xl px-6 py-10 text-center text-xs text-ink-faint">
+        <main className="mx-auto w-full max-w-6xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">{children}</main>
+        <footer className="mx-auto max-w-6xl px-6 pb-28 pt-6 text-center text-xs text-ink-faint lg:pb-10">
           NutriFit Pakistan · Estimates for planning, not medical advice.
         </footer>
       </div>
+
+      {/* Mobile app-style bottom tab bar */}
+      <BottomNav />
     </div>
   );
 }
