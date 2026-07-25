@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 import os
-import random
 import re
 import sys
 from typing import Any, Dict, List, Optional
@@ -47,15 +46,6 @@ DESI_PAT = re.compile(
     re.I,
 )
 
-SNACK_CHOICES = [
-    {"name": "Apple", "cal": 80, "p": 0, "c": 21, "f": 0},
-    {"name": "Banana", "cal": 95, "p": 1, "c": 23, "f": 0},
-    {"name": "Dates (3 pcs)", "cal": 70, "p": 0, "c": 19, "f": 0},
-    {"name": "Almonds (15 g)", "cal": 90, "p": 3, "c": 3, "f": 7},
-    {"name": "Yogurt (100 g)", "cal": 80, "p": 5, "c": 6, "f": 3},
-]
-
-
 def _strip_gram_suffix(name: str) -> str:
     return re.sub(r"\s+—\s*\d+\s*g$", "", str(name), flags=re.I).strip()
 
@@ -77,13 +67,6 @@ def _standardize_serving(name: str):
     else:
         grams = 150
     return base, grams, f"{base} — {grams} g"
-
-
-def _build_daily_snack() -> Dict[str, Any]:
-    s = random.choice(SNACK_CHOICES)
-    _, grams, display = _standardize_serving(s["name"])
-    return {"name": display, "quantity": grams, "calories": s["cal"],
-            "protein": s["p"], "carbs": s["c"], "fat": s["f"]}
 
 
 def _find_desi_alternative(target_cal, allergies=None, exclude_names=None) -> Optional[Dict[str, Any]]:
@@ -121,22 +104,22 @@ def _process_and_summarize(plan_data: Dict[str, Any], allergies: List[str]) -> D
     for day_data in plan_data["weekly_plan"]:
         meals = []
         for meal in day_data["meals"]:
-            base, grams, display = _standardize_serving(meal.get("name", ""))
             m = dict(meal)
-            m["name"] = display
-            m["quantity"] = grams
-            if JUNK_PAT.search(base):
-                alt = _find_desi_alternative(m.get("calories", 400), allergies, exclude_names=[m["name"]])
-                if alt:
-                    m = alt
+            # The model already computed a serving quantity that matches the
+            # meal's calories/macros (per-100g x qty/100). Keep them CONSISTENT:
+            # display the actual quantity, do not override it to a fixed value.
+            qty = int(round(float(m.get("quantity", 100))))
+            base = _strip_gram_suffix(m.get("name", ""))
+            m["quantity"] = qty
+            m["name"] = f"{base} — {qty} g"
             meals.append(m)
+        # Defensive: guarantee at least 3 items (the model normally returns 4).
         while len(meals) < 3:
             alt = _find_desi_alternative(400, allergies, exclude_names=[mm["name"] for mm in meals])
             if not alt:
-                alt = {"name": "Plain Roti — 100 g", "quantity": 100,
-                       "calories": 250, "protein": 8, "carbs": 40, "fat": 5}
+                alt = {"name": "Whole Wheat Roti — 100 g", "quantity": 100,
+                       "calories": 265, "protein": 8, "carbs": 50, "fat": 5, "fiber": 6, "sugar": 1}
             meals.append(alt)
-        meals.append(_build_daily_snack())
         new_week.append({"day": day_data.get("day"),
                          "day_number": day_data.get("day_number"), "meals": meals})
 
@@ -166,6 +149,9 @@ _ALIAS_MAP = {
     "difficultylevel": "Difficulty", "desc": "Instructions", "description": "Instructions",
     "instructions": "Instructions", "type": "Type", "category": "Type", "mechanics": "Mechanics",
     "movementtype": "Mechanics", "met": "MET", "mets": "MET",
+    # The workout CSV stores MET-like values in a column named "Calories_Burned".
+    "caloriesburned": "MET", "burnedcalories": "MET", "calories_burned": "MET",
+    "burned_calories": "MET",
 }
 _WORKOUT_DATA_PATH = os.path.join(_WORKOUT_DIR, "workoutdata_with_estimated_met.csv")
 
@@ -299,3 +285,41 @@ def generate_workout(age, gender, weight, height, goal, activity, preference) ->
 def swap_workout(current: Dict[str, Any], preference: str) -> List[Dict[str, Any]]:
     df = _load_workout_df()
     return swap_alternatives(df, current=current, preference=preference)
+
+
+def compute_targets(age, gender, weight, height, goal, activity) -> Dict[str, Any]:
+    """Exact Mifflin-St Jeor + Atwater targets (no ML needed)."""
+    dm = diet_model
+    tdee = dm._math_tdee(age, gender, weight, height, activity)
+    tgt = dm._math_target_cal(tdee, goal)
+    p, c, f = dm._math_macros(tgt, goal)
+    return {
+        "tdee": round(tdee, 1),
+        "calories": round(tgt, 1),
+        "protein": round(p, 1),
+        "carbs": round(c, 1),
+        "fat": round(f, 1),
+    }
+
+
+def search_foods(query: str, limit: int = 20) -> List[Dict[str, Any]]:
+    """Search the catalog; return per-100g nutrition so the client can scale."""
+    df = diet_model.combined_data
+    if df is None:
+        return []
+    q = (query or "").strip()
+    sub = df if not q else df[df["Food Name"].str.contains(q, case=False, na=False)]
+    out = []
+    for _, r in sub.head(limit).iterrows():
+        out.append({
+            "name": r["Food Name"],
+            "meal_type": r.get("Meal_Type"),
+            "is_snack": bool(r.get("is_snack", 0)),
+            "per100": {
+                "calories": round(float(r.get("Calories", 0) or 0), 1),
+                "protein": round(float(r.get("Protein (g)", 0) or 0), 1),
+                "carbs": round(float(r.get("Carbohydrates (g)", 0) or 0), 1),
+                "fat": round(float(r.get("Fat (g)", 0) or 0), 1),
+            },
+        })
+    return out

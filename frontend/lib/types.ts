@@ -80,5 +80,49 @@ export interface ProgressData {
   plateau: Plateau;
 }
 
+export interface LoggedMeal {
+  id: number;
+  meal_type: string;
+  food_name: string;
+  quantity_g: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface DayLog {
+  date: string;
+  meals: LoggedMeal[];
+  totals: Targets;
+  target: Targets | null;
+}
+
+export interface Summary {
+  today: Targets;
+  meals_logged_today: number;
+  target: (Targets & { tdee: number }) | null;
+  streak: number;
+  week: { date: string; calories: number }[];
+}
+
+export interface FoodResult {
+  name: string;
+  meal_type: string;
+  is_snack: boolean;
+  per100: { calories: number; protein: number; carbs: number; fat: number };
+}
+
+export interface Profile {
+  exists: boolean;
+  age?: number;
+  gender?: number;
+  weight?: number;
+  height?: number;
+  goal?: number;
+  activity?: number;
+  targets?: Targets & { tdee: number };
+}
+
 export const GOALS = ["Weight Loss", "Muscle Gain", "Maintain"];
 export const ACTIVITIES = ["Sedentary", "Light", "Moderate", "Active", "Very Active"];

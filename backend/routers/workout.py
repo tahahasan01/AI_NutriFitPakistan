@@ -1,6 +1,5 @@
 """Workout routes: generate plan, swap exercise. Auth required (was public before)."""
 
-from __future__ import annotations
 
 import logging
 

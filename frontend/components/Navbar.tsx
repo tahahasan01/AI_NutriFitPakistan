@@ -2,16 +2,23 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Salad, Dumbbell, LineChart, LogOut, Leaf, LayoutDashboard, CalendarDays } from "lucide-react";
 import { useAuth } from "@/app/providers";
+import { usePrefs } from "@/components/PrefsProvider";
+import { Avatar } from "@/components/Avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const links = [
-  { href: "/diet", label: "Diet" },
-  { href: "/workout", label: "Workout" },
-  { href: "/progress", label: "Progress" },
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { href: "/log", label: "Today", icon: CalendarDays },
+  { href: "/diet", label: "Diet", icon: Salad },
+  { href: "/workout", label: "Workout", icon: Dumbbell },
+  { href: "/progress", label: "Progress", icon: LineChart },
 ];
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { avatar } = usePrefs();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -21,36 +28,51 @@ export function Navbar() {
   }
 
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-lg font-bold text-brand">
-          NutriFit<span className="text-slate-800"> Pakistan</span>
+    <header className="sticky top-0 z-50 border-b border-ink/[.06] bg-paper/85 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-leaf-600 text-white ring-1 ring-leaf-700">
+            <Leaf className="h-5 w-5" />
+          </span>
+          <span className="whitespace-nowrap font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
+            NutriFit<span className="text-leaf-600"> PK</span>
+          </span>
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-0.5 sm:gap-1">
           {user &&
-            links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === l.href
-                    ? "bg-brand/10 text-brand"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {l.label}
-              </Link>
-            ))}
+            links.map((l) => {
+              const active = pathname === l.href;
+              const Icon = l.icon;
+              return (
+                <Link key={l.href} href={l.href}
+                  className={`btn-chip px-2.5 sm:px-3.5 ${active
+                    ? "bg-brand-500/12 text-brand-600"
+                    : "text-ink-muted hover:bg-paper-warm hover:text-brand-500"}`}>
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{l.label}</span>
+                </Link>
+              );
+            })}
           {user ? (
-            <button onClick={handleLogout} className="btn-ghost ml-2 py-1.5 text-sm">
-              Log out
-            </button>
+            <>
+              <Link href="/settings" title="Settings"
+                className={`ml-1 rounded-full ring-2 transition ${
+                  pathname === "/settings" ? "ring-brand-500" : "ring-transparent hover:ring-ink/15"}`}>
+                <Avatar src={avatar} name={user.name} size={34} />
+              </Link>
+              <button onClick={handleLogout} className="btn-ghost ml-1 hidden px-3 py-1.5 sm:inline-flex">
+                <LogOut className="h-4 w-4" />
+                <span>Log out</span>
+              </button>
+            </>
           ) : (
-            <Link href="/" className="btn-primary py-1.5 text-sm">
-              Sign in
-            </Link>
+            <>
+              <Link href="/login" className="btn-ghost px-4 py-2">Log in</Link>
+              <Link href="/signup" className="btn-accent px-4 py-2">Get started</Link>
+            </>
           )}
+          <ThemeToggle />
         </nav>
       </div>
     </header>

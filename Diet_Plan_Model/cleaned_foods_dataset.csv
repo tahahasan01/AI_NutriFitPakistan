@@ -2,53 +2,84 @@ Food Name,Calories,Carbohydrates (g),Sugars (g),Fat (g),Protein (g),Fiber (g),Ca
 Aloo Paratha,308.0,45,2,12,7,4,Bread,Pakistani,Breakfast
 Egg Paratha,291.0,30,2,15,10,2,Bread,Pakistani,Breakfast
 Plain Paratha,325.0,46,1,13,8,4,Bread,Pakistani,Breakfast
-Halwa Puri,368.0,42,12,20,6,2,Bread,Pakistani,Breakfast
+Paneer Paratha,309.0,34,2,15,11,3,Bread,Pakistani,Breakfast
 Keema Paratha,316.0,32,1,16,12,2,Bread,Pakistani,Breakfast
+Halwa Puri,368.0,42,12,20,6,2,Bread,Pakistani,Breakfast
+Puri (fried),366.0,45,1,18,7,2,Bread,Pakistani,Breakfast
 Boiled Eggs,155.4,1.1,1.1,11,13,0,Protein,Global,Breakfast
 Masala Omelette,175.0,4,2,13,11,1,Protein,Pakistani,Breakfast
 Scrambled Eggs,181.4,1.6,1.6,15,10,0,Protein,Global,Breakfast
+Anda Bhurji,180.0,3,2,14,11,1,Protein,Pakistani,Breakfast
 Paneer Bhurji,240.0,6,2,18,14,1,Protein,Pakistani,Breakfast
+Aloo Anda,176.0,10,2,12,8,2,Protein,Pakistani,Breakfast
 Oatmeal (cooked),68.1,12,0.5,1.5,2.5,1.7,Cereal,Global,Breakfast
 Cornflakes with Milk,120.0,22,10,2,4,1,Cereal,Global,Breakfast
 Bran Cereal,106.0,20,4,2,4,4,Cereal,Global,Breakfast
+Vegetable Upma,146.0,20,2,6,4,2,Cereal,Global,Breakfast
 Suji Halwa,333.0,45,25,15,5,1,Sweet,Pakistani,Breakfast
 Sweet Vermicelli (Seviyan),206.0,30,15,8,4,1,Sweet,Pakistani,Breakfast
+Sheer Khurma,207.0,28,20,9,4,1,Sweet,Pakistani,Breakfast
 French Toast,191.0,20,4,9,8,1,Bread,Global,Breakfast
 Peanut Butter Toast,256.0,25,4,14,9,3,Bread,Global,Breakfast
-Naan,277.0,50,3,5,9,2,Bread,Pakistani,Breakfast
-Whole Wheat Roti,240.0,46,1,4,8,6,Bread,Pakistani,Breakfast
+Egg & Toast,205.0,22,3,9,10,2,Bread,Global,Breakfast
+Baked Beans on Toast,154.0,25,6,4,7,5,Bread,Global,Breakfast
+Naan,295.0,50,3,7,9,2,Bread,Pakistani,Breakfast
+Whole Wheat Roti,265.0,50,1,5,8,6,Bread,Pakistani,Breakfast
 Whole Milk,63.3,5,5,3.3,3.4,0,Dairy,Global,Breakfast
 Plain Yogurt (Dahi),63.7,5,5,3.3,3.5,0,Dairy,Pakistani,Breakfast
 Fruit & Yogurt Bowl,86.0,14,12,2,4,2,Dairy,Global,Breakfast
 Chana Chaat (Breakfast),173.0,27,3,5,9,8,Legume,Pakistani,Breakfast
+Murghi Cholay,173.0,18,3,7,12,5,Legume,Pakistani,Breakfast
 Chicken Biryani,135.0,16,1,5,7,1,Rice,Pakistani,Lunch
 Mutton Biryani,187.0,18,1,9,9,1,Rice,Pakistani,Lunch
+Sindhi Biryani,161.0,17,2,7,8,1,Rice,Pakistani,Lunch
 Chicken Pulao,180.0,24,1,6,8,1,Rice,Pakistani,Lunch
+Beef Pulao,185.0,22,1,7,9,1,Rice,Pakistani,Lunch
+Kabuli Pulao,192.0,24,3,8,7,2,Rice,Pakistani,Lunch
 Vegetable Pulao,157.0,25,2,5,4,2,Rice,Pakistani,Lunch
 Vegetable Biryani,164.0,24,2,6,5,3,Rice,Pakistani,Lunch
 Plain Boiled Rice,124.7,28,0,0.3,2.7,0.4,Rice,Pakistani,Lunch
+Chicken Fried Rice,189.0,24,2,7,8,1,Rice,Global,Lunch
+Vegetable Fried Rice,170.0,26,2,6,4,2,Rice,Global,Lunch
 Chicken Karahi,177.0,5,2,11,15,1,Curry,Pakistani,Lunch
 Chana Masala,151.0,22,3,5,8,7,Legume,Pakistani,Lunch
+Chholay,160.0,22,3,6,8,7,Legume,Pakistani,Lunch
 Rajma (Kidney Beans),142.0,22,2,4,8,7,Legume,Pakistani,Lunch
 Daal Chana (cooked),132.0,20,2,4,8,8,Legume,Pakistani,Lunch
-Daal Masoor (cooked),109.0,20,2,1,9,8,Legume,Pakistani,Lunch
+Daal Masoor (cooked),111.0,20,2,1,9,7,Legume,Pakistani,Lunch
 Lobia (Black-eyed Peas),127.0,20,2,3,8,6,Legume,Pakistani,Lunch
 Aloo Gosht,190.0,8,2,12,13,1,Curry,Pakistani,Lunch
+Aloo Matar,101.0,12,4,5,4,4,Vegetable,Pakistani,Lunch
 Bhindi Sabzi (Okra),93.0,7,3,7,2,3,Vegetable,Pakistani,Lunch
 Mixed Vegetable Sabzi,98.0,10,4,6,3,4,Vegetable,Pakistani,Lunch
 Aloo Palak,75.0,6,2,5,3,3,Vegetable,Pakistani,Lunch
 Gobi Aloo,106.0,12,4,6,3,4,Vegetable,Pakistani,Lunch
+Karela (Bitter Gourd),86.0,8,3,6,2,4,Vegetable,Pakistani,Lunch
+Tinda Masala,75.0,7,3,5,2,3,Vegetable,Pakistani,Lunch
 Chicken Tikka,180.0,2,1,8,25,0,Protein,Pakistani,Lunch
+Reshmi Kebab,182.0,3,1,10,20,0,Protein,Pakistani,Lunch
 Fish Curry,167.0,6,2,9,16,1,Curry,Pakistani,Lunch
 Egg Curry,162.0,5,2,12,9,1,Curry,Pakistani,Lunch
 Chicken Shawarma Roll,268.0,26,3,12,15,2,Wrap,Global,Lunch
+Chicken Sandwich,237.0,26,3,9,14,2,Wrap,Global,Lunch
+Club Sandwich,274.0,28,4,12,15,3,Wrap,Global,Lunch
 Palak Paneer,158.0,6,2,12,8,3,Curry,Pakistani,Lunch
+Chicken Manchurian,183.0,12,5,9,14,1,Curry,Global,Lunch
+Daal Chawal,163.0,30,1,3,6,4,Rice,Pakistani,Lunch
+Vegetable Curry,96.0,9,3,6,3,3,Vegetable,Pakistani,Lunch
+Bhagare Baingan,130.0,9,3,10,3,4,Vegetable,Pakistani,Lunch
 Beef Nihari,208.0,6,1,14,15,1,Curry,Pakistani,Dinner
-Chicken Qorma,195.0,6,2,13,14,1,Curry,Pakistani,Dinner
+Chicken Qorma,150.0,6,2,8,14,1,Curry,Pakistani,Dinner
+Mutton Qorma,191.0,6,2,13,13,1,Curry,Pakistani,Dinner
 Chicken Handi,186.0,5,2,12,15,1,Curry,Pakistani,Dinner
+White Chicken Karahi,195.0,5,2,13,15,1,Curry,Pakistani,Dinner
 Chicken Jalfrezi,169.0,8,3,9,15,2,Curry,Pakistani,Dinner
+Chicken Achari,172.0,6,2,10,15,1,Curry,Pakistani,Dinner
 Mutton Karahi,204.0,5,2,14,15,1,Curry,Pakistani,Dinner
+Karahi Gosht,209.0,5,2,15,14,1,Curry,Pakistani,Dinner
 Beef Salan (Curry),195.0,6,2,13,14,1,Curry,Pakistani,Dinner
+Palak Gosht,188.0,7,2,12,14,2,Curry,Pakistani,Dinner
+Daal Gosht,169.0,12,2,9,12,4,Curry,Pakistani,Dinner
 Kofta Curry,205.0,6,2,15,12,1,Curry,Pakistani,Dinner
 Matar Paneer,165.0,10,4,11,8,3,Curry,Pakistani,Dinner
 Daal Makhani,178.0,18,2,10,7,6,Legume,Pakistani,Dinner
@@ -56,12 +87,22 @@ Daal Tarka,143.0,20,2,5,8,7,Legume,Pakistani,Dinner
 Mixed Daal,129.0,20,2,3,9,7,Legume,Pakistani,Dinner
 Haleem,142.0,14,1,6,9,2,Curry,Pakistani,Dinner
 Beef Keema,213.0,4,1,15,16,1,Protein,Pakistani,Dinner
+Aloo Keema,205.0,10,2,13,13,2,Protein,Pakistani,Dinner
 Seekh Kebab,242.0,3,1,18,17,0,Protein,Pakistani,Dinner
 Chapli Kebab,262.0,5,1,20,16,1,Protein,Pakistani,Dinner
+Shami Kebab,186.0,6,1,12,14,1,Protein,Pakistani,Dinner
+Malai Boti,195.0,2,1,11,22,0,Protein,Pakistani,Dinner
 Tandoori Chicken,176.0,2,1,8,24,0,Protein,Pakistani,Dinner
 Grilled Chicken Breast,156.4,0,0,3.6,31,0,Protein,Global,Dinner
+Chicken Steak,204.0,5,2,10,24,1,Protein,Global,Dinner
+Beef Steak,216.0,1,0,12,26,0,Protein,Global,Dinner
 Fried Fish,212.0,8,1,12,18,0,Protein,Pakistani,Dinner
+Grilled Fish,146.0,1,0,6,22,0,Protein,Global,Dinner
+Fish Tikka,155.0,2,1,7,21,0,Protein,Pakistani,Dinner
 Prawn Masala,158.0,5,2,8,17,1,Curry,Pakistani,Dinner
 Baingan Bharta,86.0,8,3,6,2,4,Vegetable,Pakistani,Dinner
 Sarson ka Saag,75.0,6,2,5,3,3,Vegetable,Pakistani,Dinner
+Kaddu (Pumpkin) Sabzi,70.0,8,4,4,2,3,Vegetable,Pakistani,Dinner
 Vegetable Stew,78.0,9,3,4,3,3,Vegetable,Global,Dinner
+Mixed Grill,244.0,3,1,16,22,0,Protein,Pakistani,Dinner
+Egg Bhurji,180.0,3,2,14,11,1,Protein,Pakistani,Dinner

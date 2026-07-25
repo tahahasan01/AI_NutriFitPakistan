@@ -6,27 +6,35 @@ CALORIES_COEFF = 3.5 / 200.0
 DEFAULT_DURATION_MIN = 10
 KCALS_PER_KG = 7700.0
 
-# === Video playlists by category (self-contained; no dependency on the web layer) ===
-CORE_PLAYLIST = "https://www.youtube.com/embed/videoseries?list=PL2ov72VWpiOpnM89hVl1IChpWHnf1Rvnm"
-UPPER_PLAYLIST = "https://www.youtube.com/embed/videoseries?list=PLvf_LH4Nzg12rnMgCf5ZX96gn-15Pz9rf"
-LOWER_PLAYLIST = "https://www.youtube.com/embed/videoseries?list=PL2ov72VWpiOq5qkkM9kP8pBONIC7gV6--"
+import re
+from urllib.parse import quote_plus
 
-_CORE_MUSCLES = {"abdominals", "lower back"}
-_LOWER_MUSCLES = {"quadriceps", "hamstrings", "glutes", "calves", "adductors", "abductors"}
-_UPPER_MUSCLES = {"chest", "lats", "middle back", "traps", "shoulders", "biceps",
-                  "triceps", "forearms", "neck"}
+# Dataset prefix/artifact tokens that leaked into exercise names (e.g.
+# "FYR2 Dumbbell Clean", "HM Jumping Arm Circle", "Dumbbell Fix Dumbbell ...").
+_NAME_ARTIFACTS = re.compile(
+    r"\b(FYR2?|HM|BFR|AMRAP|WOD|EMOM|DB|KB)\b|\bDumbbell\s+Fix\b",
+    flags=re.IGNORECASE,
+)
 
 
-def get_video_for_muscle(primary_muscle: str) -> str:
-    """Map an exercise's Primary_Muscle to a YouTube playlist."""
-    pm = (primary_muscle or "").strip().lower()
-    if pm in _CORE_MUSCLES:
-        return CORE_PLAYLIST
-    if pm in _LOWER_MUSCLES:
-        return LOWER_PLAYLIST
-    if pm in _UPPER_MUSCLES:
-        return UPPER_PLAYLIST
-    return CORE_PLAYLIST
+def clean_exercise_name(name: str) -> str:
+    """Strip dataset artifacts and collapse duplicate words in an exercise name."""
+    n = _NAME_ARTIFACTS.sub(" ", str(name or ""))
+    n = re.sub(r"\bFix\b", " ", n, flags=re.IGNORECASE)
+    # collapse immediate duplicate words ("Dumbbell Dumbbell" -> "Dumbbell")
+    n = re.sub(r"\b(\w+)(\s+\1\b)+", r"\1", n, flags=re.IGNORECASE)
+    n = re.sub(r"\s+", " ", n).strip()
+    return n or str(name or "").strip()
+
+
+def get_video_for_exercise(name: str) -> str:
+    """A YouTube search link for the specific exercise's proper form.
+
+    Search URLs always resolve (unlike the old deprecated `videoseries`
+    embeds) and point at the actual movement rather than a generic playlist.
+    """
+    q = quote_plus(f"{clean_exercise_name(name)} exercise proper form")
+    return f"https://www.youtube.com/results?search_query={q}"
 
 
 def _s(x):
@@ -82,31 +90,86 @@ def build_split() -> Dict[str, List[str]]:
     }
 
 
-def pick_exercises(df: pd.DataFrame, muscles: List[str], n: int = 6) -> List[Dict[str, Any]]:
+# Olympic / explosive full-body lifts that don't belong on an isolated
+# push/pull/legs day — the dataset labels them to a single muscle (usually
+# Shoulders), so a snatch would otherwise land on "Push (Chest)" day.
+_OLYMPIC_LIFT = re.compile(r"\b(?:snatch|clean|jerk|muscle[- ]?up|thruster)\b", re.IGNORECASE)
+
+
+def _row_to_exercise(row: Any) -> Dict[str, Any]:
+    instr = _s(row.get("Instructions"))
+    instr = "" if instr.strip().lower() == "nan" else instr
+    return {
+        "Exercise_Name": row.get("Exercise_Name"),
+        "Primary_Muscle": row.get("Primary_Muscle"),
+        "Equipment": row.get("Equipment"),
+        "Difficulty": row.get("Difficulty"),
+        "Instructions": instr,
+        "MET": float(row.get("MET", 0) or 0),
+        "Type": row.get("Type"),
+        "Mechanics": row.get("Mechanics"),
+        "Level": row.get("Level"),
+    }
+
+
+def pick_exercises(df: pd.DataFrame, muscles: List[str], n: int = 6,
+                   exclude_olympic: bool = True) -> List[Dict[str, Any]]:
     if not len(df):
         return []
-    pattern = "|".join([m for m in muscles if m]) or ".*"
-    primary = df.get("Primary_Muscle", pd.Series([""] * len(df))).fillna("").astype(str)
-    subset = df[primary.str.contains(pattern, case=False, na=False)]
-    if subset.empty:
-        subset = df
-    picks = subset.head(n)
-    results = []
-    for _, row in picks.iterrows():
-        instr = _s(row.get("Instructions"))
-        instr = "" if instr.strip().lower() == "nan" else instr
-        results.append({
-            "Exercise_Name": row.get("Exercise_Name"),
-            "Primary_Muscle": row.get("Primary_Muscle"),
-            "Equipment": row.get("Equipment"),
-            "Difficulty": row.get("Difficulty"),
-            "Instructions": instr,
-            "MET": float(row.get("MET", 0) or 0),
-            "Type": row.get("Type"),
-            "Mechanics": row.get("Mechanics"),
-            "Level": row.get("Level"),
-        })
-    return results
+
+    names = df.get("Exercise_Name", pd.Series([""] * len(df))).fillna("").astype(str)
+    work = df
+    if exclude_olympic:
+        keep = ~names.str.contains(_OLYMPIC_LIFT)
+        if keep.any():
+            work = df[keep]
+
+    prim = work.get("Primary_Muscle", pd.Series([""] * len(work))).fillna("").astype(str).str.lower()
+
+    # Candidate rows per requested muscle, preserving the goal-prioritized order.
+    per_muscle = []
+    for m in muscles:
+        ml = (m or "").strip().lower()
+        rows = [row for _, row in work[prim == ml].iterrows()]
+        if rows:
+            per_muscle.append(rows)
+
+    # Round-robin across the day's muscles so it actually trains each group
+    # (e.g. Push day gets chest + shoulders + triceps, not 6 shoulder moves).
+    chosen: List[Dict[str, Any]] = []
+    seen = set()
+    ptr = [0] * len(per_muscle)
+    while len(chosen) < n and per_muscle:
+        progressed = False
+        for k in range(len(per_muscle)):
+            if len(chosen) >= n:
+                break
+            rows = per_muscle[k]
+            while ptr[k] < len(rows):
+                row = rows[ptr[k]]
+                ptr[k] += 1
+                nm = str(row.get("Exercise_Name", ""))
+                if nm in seen:
+                    continue
+                chosen.append(_row_to_exercise(row))
+                seen.add(nm)
+                progressed = True
+                break
+        if not progressed:
+            break
+
+    # Fallbacks: fill from the filtered pool, then the raw pool if still short.
+    if len(chosen) < n:
+        for _, row in work.iterrows():
+            if len(chosen) >= n:
+                break
+            nm = str(row.get("Exercise_Name", ""))
+            if nm in seen:
+                continue
+            chosen.append(_row_to_exercise(row))
+            seen.add(nm)
+
+    return chosen[:n]
 
 
 def swap_alternatives(df: pd.DataFrame, current: Dict[str, Any], preference: str) -> List[Dict[str, Any]]:
@@ -194,7 +257,9 @@ def generate_workout_plan(df: pd.DataFrame, user: Dict[str, Any], duration_min: 
     daily_calories = []
 
     for day, muscles in split.items():
-        picks = pick_exercises(df2, muscles=muscles, n=6)
+        # Olympic/explosive lifts are only appropriate on the full-body day.
+        allow_olympic = "Full Body" in day
+        picks = pick_exercises(df2, muscles=muscles, n=6, exclude_olympic=not allow_olympic)
         for ex in picks:
             ex["calories"] = round(calculate_calories(ex.get("MET", 0.0), weight, duration_min))
             instructions = _s(ex.get("Instructions"))
@@ -218,10 +283,7 @@ def generate_workout_plan(df: pd.DataFrame, user: Dict[str, Any], duration_min: 
 
     for day, exercises in plan.items():
         for ex in exercises:
-            primary = (
-                ex.get("Primary_Muscle")
-                or ex.get("BodyPart")
-                or ""
-            )
-            ex["Video_URL"] = get_video_for_muscle(primary)
+            if ex.get("Exercise_Name"):
+                ex["Exercise_Name"] = clean_exercise_name(ex["Exercise_Name"])
+            ex["Video_URL"] = get_video_for_exercise(ex.get("Exercise_Name", ""))
     return plan, total_calories, chart_data

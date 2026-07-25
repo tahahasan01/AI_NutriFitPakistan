@@ -2,31 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light dark;
-}
+@layer base {
+  /* Light: warm cream */
+  :root {
+    --paper: 253 249 244;
+    --paper-warm: 249 241 233;
+    --paper-card: 255 255 255;
+    --ink: 28 23 20;
+    --ink-soft: 62 54 49;
+    --ink-muted: 124 112 105;
+    --ink-faint: 172 160 152;
+  }
+  /* Dark: neutral graphite (workout-app default), red used only as accent */
+  .dark {
+    --paper: 17 18 20;
+    --paper-warm: 33 34 38;
+    --paper-card: 26 27 31;
+    --ink: 237 237 240;
+    --ink-soft: 201 201 206;
+    --ink-muted: 150 150 158;
+    --ink-faint: 104 104 113;
+  }
 
-body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  body {
+    @apply bg-paper text-ink;
+    min-height: 100vh;
+    overflow-x: clip;
+    background-color: rgb(var(--paper));
+    background-image:
+      radial-gradient(1000px 620px at 100% -8%, rgba(242,84,45,.16), transparent 60%),
+      radial-gradient(780px 560px at -6% 6%, rgba(247,166,58,.14), transparent 55%),
+      radial-gradient(720px 620px at 55% 118%, rgba(242,84,45,.07), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.02'/%3E%3C/svg%3E");
+    background-attachment: fixed;
+  }
+  h1, h2, h3 { @apply font-display tracking-tight; }
 }
 
 @layer components {
+  .display { @apply font-display; }
+
+  /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-paper
+           sm:px-5 sm:py-2.5 sm:text-sm;
   }
+  /* primary = crimson (chunky, tactile) */
   .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-dark;
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 hover:-translate-y-0.5;
+  }
+  /* the loud CTA = flame gradient */
+  .btn-accent {
+    @apply btn text-white shadow-soft hover:-translate-y-0.5;
+    background-image: linear-gradient(135deg, #f2542d 0%, #f7853a 55%, #f7a63a 100%);
+  }
+  .btn-accent:hover:not(:disabled) { filter: brightness(1.05); }
+  .text-flame {
+    @apply bg-gradient-to-r from-brand-500 via-brand-500 to-ember-500 bg-clip-text text-transparent;
   }
   .btn-ghost {
-    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-100;
+    @apply btn border border-ink/15 bg-paper-card/70 text-ink-soft hover:border-ink/30 hover:-translate-y-0.5;
   }
+  .btn-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition;
+  }
+
+  /* Surfaces — solid warm cards with a defined edge (no gratuitous glass) */
   .card {
-    @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm;
+    @apply rounded-2xl border border-ink/[.07] bg-paper-card p-5 shadow-soft;
   }
+  .card-hover { @apply transition-all duration-200 hover:shadow-lift hover:-translate-y-1; }
+
+  /* Forms */
+  .field { @apply space-y-1.5; }
+  .label { @apply block text-[11px] font-bold uppercase tracking-[.08em] text-ink-muted; }
   .input {
-    @apply w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-brand focus:ring-2 focus:ring-brand/30;
+    @apply w-full rounded-xl border border-ink/15 bg-paper-card px-3.5 py-2.5 text-sm text-ink
+           outline-none transition placeholder:text-ink-faint
+           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10;
   }
-  .label {
-    @apply mb-1 block text-sm font-medium text-slate-700;
-  }
+  select.input { @apply cursor-pointer; }
+
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .eyebrow { @apply text-xs font-bold uppercase tracking-[.14em] text-brand-600; }
+}
+
+/* Recharts polish */
+.recharts-cartesian-axis-tick text { fill: #A8A296; font-size: 12px; }
+.recharts-default-tooltip {
+  border-radius: 12px !important;
+  border: 1px solid rgba(27,26,21,.1) !important;
+  box-shadow: 0 12px 40px -8px rgba(27,26,21,.16) !important;
+  background: #FFFDF8 !important;
 }

@@ -1,6 +1,5 @@
 """Diet routes: generate plan, swap meal, meal details."""
 
-from __future__ import annotations
 
 import logging
 

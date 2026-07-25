@@ -1,20 +1,156 @@
-# NutriFit Pakistan — AI-assisted Nutrition & Fitness
+# 🥗 NutriFit Pakistan
 
-Personalized diet plans, workout generation, and progress tracking, tuned for
-Pakistani cuisine and TDEE-based nutrition.
+**AI-assisted nutrition & fitness, built for desi plates.** Personalized 7-day
+meal plans, 6-day workout splits, food logging, and progress tracking — powered
+by a verified, per-100g dataset of Pakistani + global foods and correct
+sports-nutrition math (Mifflin–St Jeor TDEE + Atwater macros).
 
-**Stack:** FastAPI (Python) backend + Next.js (App Router, TypeScript) frontend.
-The frontend proxies `/api/*` to the backend, so session cookies stay
-first-party and the browser only ever talks to one origin.
+> Most trackers assume Western diets and guess at desi portions. NutriFit is
+> local-first by design: your biryani, nihari, and daal are counted correctly,
+> and every plan is matched to *your* calorie **and** macro targets — not just a
+> number on a screen.
+
+**Stack:** FastAPI (Python) · Next.js 14 App Router (TypeScript, Tailwind) ·
+SQLAlchemy · Neon/Postgres · deployed on Vercel.
+
+---
+
+## Table of contents
+
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Architecture](#architecture)
+- [Accuracy & methodology](#accuracy--methodology)
+- [Repository layout](#repository-layout)
+- [Quick start (local)](#quick-start-local)
+- [API reference](#api-reference)
+- [Data model](#data-model)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Testing](#testing)
+- [Security posture](#security-posture)
+- [Roadmap](#roadmap)
+
+---
+
+## Features
+
+**AI Coach** *(new)*
+- 💬 **Conversational assistant** grounded in your profile, today's log, and the
+  verified desi dataset. It does two things in one chat:
+  - **Natural-language meal logging** — *"aloo gosht with 2 roti and a lassi"* is
+    parsed into foods + portions + macros and logged for you.
+  - **Coaching** — *"can I eat biryani tonight and stay on target?"* answered
+    against your remaining calorie/macro budget, with swaps.
+- Powered by Claude (tool-use). Optional: set `ANTHROPIC_API_KEY` to enable it;
+  the app runs fine without it.
+
+**Nutrition**
+- 🍽️ **7-day meal plans** matched to your calorie *and* macro targets
+  (protein / carbs / fat), using real Pakistani meals — biryani, karahi, daal,
+  chaat — portioned to hit the goal, not random serving sizes.
+- 🔁 **Smart swaps** — don't like a meal? Swap it for a goal-aware alternative.
+- 🔍 **Food search & logging** — search 150+ verified foods, log what you eat,
+  and see your day's calories/macros vs target.
+- 🔥 **Daily diary & streaks** — a food log ("Today") with running totals and a
+  logging streak to build the habit.
+
+**Fitness**
+- 🏋️ **6-day workout splits** (Push / Pull / Legs / Core / Upper / Full Body),
+  for **home or gym**, with per-exercise calorie burn from MET values.
+- ▶️ **Form videos** — every exercise links to a YouTube search for that
+  specific movement's proper form.
+
+**Tracking & personalization**
+- 📊 **Dashboard + BMI calculator** as the post-login home.
+- 📈 **Progress tracking** — weekly weight log with trend charts and automatic
+  **plateau detection**.
+- ⚙️ **Settings** — light/dark mode, avatar upload, profile & security, account
+  deletion.
+- 🧭 **App shell** — collapsible sidebar, sticky top bar, fully responsive
+  (mobile + desktop).
+
+**Foundations**
+- 🔐 Session auth (signed, `HttpOnly` cookies), PBKDF2 password hashing, rate
+  limiting, security headers, Pydantic validation on every request.
+
+---
+
+## How it works
 
 ```
-┌─────────────┐     /api/* (Next rewrite proxy)     ┌──────────────────┐
-│  Next.js    │  ───────────────────────────────▶   │   FastAPI API    │
-│  (Vercel)   │      cookie session (SameSite=Lax)   │  + ML modules    │
-└─────────────┘                                      └──────────────────┘
-                                                            │
-                                                     MySQL / Postgres
+1. Tell us about you   →   age, weight, height, goal, activity  (~20 seconds)
+2. Get your plan       →   calorie- & macro-matched 7-day menu + 6-day split
+3. Track & adapt       →   log meals, swap what you dislike, watch for plateaus
 ```
+
+Targets are computed with the **exact Mifflin–St Jeor** equation and **correct
+Atwater factors** (protein/carb = 4 kcal/g, **fat = 9 kcal/g**). Meals are then
+selected to steer each day toward your macro split — so a weight-loss day lands
+near its protein/carb/fat targets instead of becoming an all-protein, zero-carb
+plate.
+
+---
+
+## Architecture
+
+The frontend proxies `/api/*` to the backend via a Next.js rewrite, so session
+cookies stay **first-party** and the browser only ever talks to one origin.
+
+```
+┌──────────────┐   /api/* (Next.js rewrite proxy)   ┌───────────────────────┐
+│   Next.js    │  ───────────────────────────────▶  │      FastAPI API       │
+│  (Vercel)    │     cookie session (SameSite=Lax)  │  auth · diet · workout │
+│  App Router  │  ◀───────────────────────────────  │  tracking · progress   │
+└──────────────┘                                     └───────────┬───────────┘
+                                                                 │
+                                    ┌────────────────────────────┼───────────────┐
+                                    │  Diet_Plan_Model (targets + macro-aware     │
+                                    │  meal selection)   ·   Work_Out_Model (MET  │
+                                    │  calories, split builder)   ·   Neon/Postgres│
+                                    └─────────────────────────────────────────────┘
+```
+
+| Layer | Tech |
+|---|---|
+| Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, Recharts, lucide-react |
+| Backend | FastAPI, Starlette SessionMiddleware, SQLAlchemy 2.0, Pydantic v2, slowapi |
+| Data/ML | pandas, NumPy, scikit-learn; optional PyTorch ranker |
+| Database | SQLite (dev) · Neon/Postgres or MySQL (prod), via `psycopg` v3 / PyMySQL |
+| Hosting | Vercel (frontend + Python backend), or any Docker host |
+
+---
+
+## Accuracy & methodology
+
+Accuracy is the product. The numbers are independently verifiable:
+
+- **TDEE / BMR** — Mifflin–St Jeor, exact. e.g. male, 25 y, 70 kg, 175 cm,
+  moderate → BMR 1673.75 × 1.55 = **2594 kcal**.
+- **Macros** — Atwater factors with **fat = 9 kcal/g** (a common bug in other
+  apps is treating fat as 4). A weight-loss split is 30% P / 35% C / 35% F.
+- **Food dataset** — a **curated, per-100g, Atwater-consistent** table of **150
+  Pakistani + global foods** (31 breakfast, 38 lunch, 38 dinner, 43 snacks),
+  each verified within ~7% of authoritative (USDA/standard) values. Rebuild &
+  validate with:
+  ```bash
+  python Diet_Plan_Model/build_dataset.py
+  ```
+  Validation blocks any row that isn't per-100g, isn't Atwater-consistent
+  (`Calories ≈ 4·carb + 4·protein + 9·fat`), has zero macros, or leaves a meal
+  type short on variety.
+- **Macro-aware meal selection** — each meal is chosen to move the day's
+  *remaining* protein/carb/fat budget toward target (not just calories), and
+  unrealistic single-food portions are penalized. Result: a weight-loss day now
+  lands ≈ 161 P / 202 C / 90 F against a 165 / 193 / 86 target.
+- **Workout calories** — standard MET equation
+  `kcal = MET × 3.5 × weight_kg / 200 × minutes`. Exercises are distributed
+  across each day's target muscles, and Olympic/explosive lifts are kept off the
+  isolation splits.
+
+> The original upstream datasets mixed per-serving and per-100g values with
+> ~14–21% Atwater-inconsistent rows and ~6% zero-macro rows. They were replaced
+> because the model assumes per-100g.
 
 ---
 
@@ -22,118 +158,200 @@ first-party and the browser only ever talks to one origin.
 
 ```
 .
-├── backend/                 # FastAPI application
-│   ├── main.py              # app assembly (middleware, routers, lifespan)
-│   ├── settings.py          # env-driven config (dev SQLite fallback, prod guards)
-│   ├── database.py          # SQLAlchemy engine/session
-│   ├── models.py            # User, UserWeightLog
-│   ├── schemas.py           # Pydantic request/response models
-│   ├── security.py          # PBKDF2 password hashing + auth dependency
-│   ├── ratelimit.py         # optional slowapi rate limiting
-│   ├── ml.py                # loads diet/workout ML, diet post-processing
-│   ├── routers/             # auth, diet, workout, progress, health
-│   ├── tests/               # end-to-end smoke tests (pytest)
-│   ├── requirements.txt
-│   ├── Dockerfile
+├── api/
+│   └── index.py            # Vercel Python entrypoint (exposes the ASGI app)
+├── vercel.json             # Vercel build/route config for the backend
+├── requirements.txt        # backend deps (inlined for Vercel)
+│
+├── backend/                # FastAPI application
+│   ├── main.py             # app assembly (middleware, routers, lifespan)
+│   ├── settings.py         # env-driven config (dev SQLite fallback, prod guards)
+│   ├── database.py         # SQLAlchemy engine/session (+ psycopg URL normalize)
+│   ├── models.py           # User, UserWeightLog, UserProfile, MealLog, FoodFeedback
+│   ├── schemas.py          # Pydantic request/response models
+│   ├── security.py         # PBKDF2 hashing + auth dependency
+│   ├── ratelimit.py        # optional slowapi rate limiting
+│   ├── ml.py               # loads diet/workout ML, diet post-processing
+│   ├── routers/            # auth · diet · workout · progress · tracking · health
+│   ├── tests/              # pytest smoke suite
 │   └── .env.example
-├── frontend/                # Next.js app (TypeScript, Tailwind)
-│   ├── app/                 # landing/auth, diet, workout, progress pages
-│   ├── components/          # Navbar, RequireAuth
-│   ├── lib/                 # api client, shared types
-│   ├── next.config.js       # /api proxy → BACKEND_URL
+│
+├── frontend/               # Next.js app (TypeScript, Tailwind)
+│   ├── app/                # landing, login/signup, dashboard, log, diet,
+│   │                       #   workout, progress, settings
+│   ├── components/         # Shell, Sidebar, Navbar, ThemeToggle, Avatar,
+│   │                       #   MacroDonut, PrefsProvider, RequireAuth
+│   ├── lib/                # api client, shared types
+│   ├── next.config.js      # /api proxy → BACKEND_URL
 │   └── .env.example
-├── Diet_Plan_Model/         # Diet ML (kept)
-│   ├── diet_model.py        # targets (Mifflin-St Jeor + Atwater) + neural ranker
-│   ├── cleaned_foods_dataset.csv, cleaned_snacks_dataset.csv
-│   └── models/              # trained nets + scalers (used only if torch installed)
-├── Work_Out_Model/          # Workout ML (kept)
-│   ├── utils.py             # rule-based plan generation, MET calories, swaps
-│   └── workoutdata_with_estimated_met.csv
-└── render.yaml              # example backend deploy blueprint
+│
+├── Diet_Plan_Model/        # Diet ML + data
+│   ├── diet_model.py       # targets (Mifflin-St Jeor + Atwater) + macro-aware plan
+│   ├── build_dataset.py    # regenerates & validates the food tables
+│   └── cleaned_foods_dataset.csv, cleaned_snacks_dataset.csv
+│
+└── Work_Out_Model/         # Workout ML + data
+    ├── utils.py            # split builder, MET calories, video links, swaps
+    └── workoutdata_with_estimated_met.csv
 ```
 
 ---
 
-## Prerequisites
+## Quick start (local)
 
-- Python 3.10+ (3.11 recommended)
-- Node.js 18+ (20/24 fine)
-- A database: SQLite is used automatically in dev; MySQL/Postgres for production
-- PyTorch is **optional** — see [ML backends](#ml-backends)
-
----
-
-## Local development
+**Prerequisites:** Python 3.10+ (3.11 recommended), Node.js 18+. PyTorch is
+**optional** (the app runs on the exact-formula path by default).
 
 ### 1. Backend (FastAPI)
 
 ```bash
-cd <repo-root>
 python -m venv .venv
-# Windows:  .venv\Scripts\activate     |  macOS/Linux:  source .venv/bin/activate
+# Windows:  .venv\Scripts\activate   |   macOS/Linux:  source .venv/bin/activate
 pip install -r backend/requirements.txt
 
-cp backend/.env.example backend/.env   # optional; dev works with defaults
 uvicorn backend.main:app --reload --port 5000
 ```
 
-- API root: http://localhost:5000
-- Interactive docs (Swagger): http://localhost:5000/docs
+- API root: http://localhost:5000 · Swagger docs: http://localhost:5000/docs
 - Health: http://localhost:5000/api/health
-- With no `DATABASE_URL`, a local `nutrifit_dev.db` (SQLite) is created automatically.
+- With no `DATABASE_URL`, a local `nutrifit_dev.db` (SQLite) is created
+  automatically — no database setup needed for dev.
 
 ### 2. Frontend (Next.js)
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local           # BACKEND_URL=http://localhost:5000
-npm run dev                          # http://localhost:3000
+cp .env.example .env.local        # BACKEND_URL=http://localhost:5000 (default)
+npm run dev                       # http://localhost:3000
 ```
 
-Open http://localhost:3000, sign up, and use Diet / Workout / Progress.
+Open http://localhost:3000 → sign up → land on the dashboard → generate a Diet
+plan / Workout, log meals, and track progress.
 
 ---
 
-## Food dataset (accuracy)
+## API reference
 
-The food/snack tables are a **curated, per-100g, Atwater-consistent** dataset of
-Pakistani + common global foods, verified within ~6% of authoritative
-(USDA/standard) per-100g values. It is generated and validated by a script:
+All routes are under `/api`. ✅ = requires an authenticated session cookie.
 
-```bash
-python Diet_Plan_Model/build_dataset.py
+### Auth
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| POST | `/api/auth/signup` | – | Register a new account |
+| POST | `/api/auth/login` | – | Log in (sets session cookie) |
+| POST | `/api/auth/logout` | ✅ | Log out |
+| GET  | `/api/auth/me` | – | Current session status |
+| POST | `/api/auth/change-password` | ✅ | Change password |
+| DELETE | `/api/auth/account` | ✅ | Delete account |
+
+### Diet
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| POST | `/api/diet/generate` | ✅ | Macro-aware 7-day meal plan |
+| POST | `/api/diet/swap` | ✅ | Alternatives for a meal |
+| POST | `/api/diet/meal-details` | ✅ | Nutrition for a food + quantity |
+
+### Workout
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| POST | `/api/workout/generate` | ✅ | 6-day home/gym split |
+| POST | `/api/workout/swap` | ✅ | Alternatives for an exercise |
+
+### Tracking & profile
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| GET / PUT | `/api/profile` | ✅ | Read / update body profile & goal |
+| GET | `/api/foods/search?q=` | ✅ | Search foods (per-100g macros) |
+| POST | `/api/log/meal` | ✅ | Log a meal for a day |
+| GET | `/api/log/day?date=` | ✅ | A day's meals + totals vs target |
+| DELETE | `/api/log/meal/{id}` | ✅ | Remove a logged meal |
+| GET | `/api/log/summary` | ✅ | Today's totals, streak, week trend |
+| POST | `/api/log/feedback` | ✅ | Like/dislike signal for a food |
+
+### AI Coach
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| POST | `/api/ai/chat` | ✅ | Conversational coach + NL meal logging (Claude tool-use) |
+
+### Progress & health
+| Method | Endpoint | Auth | Description |
+|---|---|:---:|---|
+| GET / POST | `/api/progress/weights` | ✅ | Weekly weight log + plateau detection |
+| GET | `/api/health` | – | Health check (`ml_backend: neural \| math`) |
+
+---
+
+## Data model
+
+| Table | Purpose |
+|---|---|
+| `User` | Account: name, email, phone, PBKDF2 password hash |
+| `UserProfile` | Age, gender, weight, height, goal, activity |
+| `MealLog` | A logged meal: date, meal type, food, quantity, calories + macros |
+| `UserWeightLog` | Weekly weight entries for trend/plateau analysis |
+| `FoodFeedback` | Like/dislike/swap signals to personalize future plans |
+
+Tables are auto-created on first run for convenience; add Alembic migrations for
+production schema changes.
+
+---
+
+## Configuration
+
+**Backend** (`backend/.env`):
+
+| Variable | Required (prod) | Description |
+|---|:---:|---|
+| `NUTRIFIT_ENV` | – | `development` \| `production` \| `testing` |
+| `NUTRIFIT_SECRET` | ✅ | Signs session cookies — `python -c "import secrets;print(secrets.token_hex(32))"` |
+| `DATABASE_URL` | ✅ | `postgresql://…` (Neon) or `mysql+pymysql://…`; `postgres://` is auto-normalized to `psycopg` v3 |
+| `AUTO_CREATE_DB` | – | `1` to create tables on startup |
+| `CORS_ORIGINS` | – | Only if calling the API cross-origin (not via the Next proxy) |
+| `ANTHROPIC_API_KEY` | – | Enables the **AI Coach**; feature is off if unset |
+| `NUTRIFIT_AI_MODEL` | – | Claude model for the coach (default `claude-sonnet-5`) |
+| `RATELIMIT_STORAGE_URI` | – | `memory://` (single instance) or `redis://…` (multi-instance) |
+
+In production the app **refuses to start** without `NUTRIFIT_SECRET` and
+`DATABASE_URL`. No credentials are hardcoded anywhere.
+
+**Frontend** (`frontend/.env.local` + Vercel project env):
+
+| Variable | Description |
+|---|---|
+| `BACKEND_URL` | URL of the FastAPI backend the Next proxy forwards `/api/*` to |
+
+---
+
+## Deployment
+
+Both halves deploy to **Vercel** from this one repo.
+
+**Frontend** — import the repo, set **Root Directory** = `frontend`, and set
+`BACKEND_URL` to the backend's public URL.
+
+**Backend** — the repo root ships `vercel.json` + `api/index.py` (Vercel's
+Python runtime serving the ASGI app) and a root `requirements.txt`. Create a
+second Vercel project with the **repo root** as its root directory, add a
+managed Postgres store (Neon) so `DATABASE_URL` is injected, and set:
+
+```
+NUTRIFIT_ENV=production
+NUTRIFIT_SECRET=<token_hex(32)>
+AUTO_CREATE_DB=1
 ```
 
-This rebuilds `cleaned_foods_dataset.csv` and `cleaned_snacks_dataset.csv`,
-validating that every row is per-100g, Atwater-consistent
-(`Calories = 4·carb + 4·protein + 9·fat − 2·fiber`), has non-zero macros, and
-that each meal type has enough variety. To add or correct a food, edit the
-`FOODS` / `SNACKS` tables in that script and re-run — validation blocks bad rows.
+Then point the frontend's `BACKEND_URL` at this project and redeploy.
 
-> The original datasets mixed per-serving and per-100g values with ~14–21%
-> Atwater-inconsistent rows, ~6% zero-macro rows, and all-zero Sugars/Fiber
-> columns. That data was replaced because the model assumes per-100g.
-
-## ML backends
-
-`diet_model.py` computes calorie/macro **targets** with the exact
-Mifflin–St Jeor equation and correct Atwater factors (protein/carb = 4 kcal/g,
-**fat = 9 kcal/g**). Food *ranking* uses a neural ranker when trained models are
-present **and** PyTorch is installed; otherwise it uses the deterministic
-formula-scored path. Both paths are accurate for targets — the ranker only
-refines food ordering.
-
-The stale pre-trained models (trained on the old inconsistent data) were removed,
-so the app runs on the correct deterministic path by default. To (re)train the
-ranker on the current dataset:
+**Docker (any Python host)** — as an alternative to Vercel:
 
 ```bash
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-python Diet_Plan_Model/diet_model.py --train    # writes models/ *.pt + scalers
+docker build -f backend/Dockerfile -t nutrifit-api .
+docker run -p 5000:5000 --env-file backend/.env nutrifit-api
 ```
 
-Check which path is active: `GET /api/health` → `ml_backend: "neural" | "math"`.
+Secure cookies + HSTS turn on automatically when `NUTRIFIT_ENV=production`; put
+the backend behind HTTPS.
 
 ---
 
@@ -146,77 +364,31 @@ pytest backend/tests -q
 
 The smoke suite covers signup/login/logout, auth enforcement, diet generation
 (7 days, ≥3 meals/day), workout generation, progress save/read + plateau, and a
-regression test that fat is 9 kcal/g.
-
----
-
-## Configuration (environment variables)
-
-Backend (`backend/.env`):
-
-| Variable            | Required (prod) | Description |
-|---------------------|:---:|---|
-| `NUTRIFIT_ENV`      |  –  | `development` \| `production` \| `testing` |
-| `NUTRIFIT_SECRET`   | ✅  | Signs session cookies. `python -c "import secrets;print(secrets.token_hex(32))"` |
-| `DATABASE_URL`      | ✅  | `mysql+pymysql://user:pass@host/nutrifit` or Postgres URL |
-| `CORS_ORIGINS`      |  –  | Only if calling the API cross-origin (not via the Next proxy) |
-| `RATELIMIT_STORAGE_URI` | – | `memory://` (single instance) or `redis://…` (multi-instance) |
-
-In production the app **refuses to start** without `NUTRIFIT_SECRET` and
-`DATABASE_URL`. No credentials are hardcoded anywhere.
-
-Frontend (`frontend/.env.local`, and Vercel project env):
-
-| Variable      | Description |
-|---------------|---|
-| `BACKEND_URL` | URL of the FastAPI backend the Next proxy forwards `/api/*` to |
-
----
-
-## Deployment
-
-**Frontend → Vercel:** import the repo, set the project **Root Directory** to
-`frontend`, and set `BACKEND_URL` to your backend's public URL.
-
-**Backend → any Python host** (Render/Railway/Fly/VM) via Docker:
-
-```bash
-docker build -f backend/Dockerfile -t nutrifit-api .
-docker run -p 5000:5000 --env-file backend/.env nutrifit-api
-```
-
-or the provided `render.yaml` blueprint. Production serves via
-`gunicorn` + `uvicorn` workers (see `backend/Procfile`). Put it behind HTTPS;
-secure cookies are enabled automatically when `NUTRIFIT_ENV=production`.
-
-For schema changes in production, add Alembic migrations (the app auto-creates
-tables on first run for convenience).
-
----
-
-## API surface
-
-| Method | Endpoint | Auth | Description |
-|---|---|:---:|---|
-| POST | `/api/auth/signup` | – | Register |
-| POST | `/api/auth/login` | – | Log in (sets session cookie) |
-| POST | `/api/auth/logout` | ✅ | Log out |
-| GET | `/api/auth/me` | – | Session status |
-| POST | `/api/diet/generate` | ✅ | 7-day meal plan |
-| POST | `/api/diet/swap` | ✅ | Meal alternatives |
-| POST | `/api/diet/meal-details` | ✅ | Nutrition for a food/quantity |
-| POST | `/api/workout/generate` | ✅ | 6-day workout plan |
-| POST | `/api/workout/swap` | ✅ | Exercise alternatives |
-| GET/POST | `/api/progress/weights` | ✅ | Weekly weight log + plateau |
-| GET | `/api/health` | – | Health check |
+regression test that fat is counted at 9 kcal/g.
 
 ---
 
 ## Security posture
 
-- Passwords hashed with PBKDF2-SHA256 (240k iterations, per-user salt).
+- Passwords hashed with **PBKDF2-SHA256** (240k iterations, per-user salt).
 - Session cookies are signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production.
-- Rate limiting on auth and generation endpoints (via `slowapi`).
-- Security headers (`X-Content-Type-Options`, `X-Frame-Options`, HSTS in prod).
-- Pydantic validation on every request body; generic auth errors (no user enumeration).
-- Secrets and DB credentials come only from the environment.
+- **Rate limiting** on auth and generation endpoints (slowapi).
+- Security headers: `X-Content-Type-Options`, `X-Frame-Options`, HSTS in prod.
+- **Pydantic validation** on every request body; generic auth errors (no user
+  enumeration).
+- Secrets and DB credentials come **only** from the environment.
+
+---
+
+## Roadmap
+
+- ✅ **AI Coach** — conversational assistant + natural-language meal logging.
+- 📷 **Photo meal logging** — snap a plate → macros (Claude vision), into the same coach.
+- 📈 **Adaptive targets** — dynamic TDEE from logged weight + intake trends.
+- 🧾 Recipe-level meal composition (multiple foods per meal) for tighter macro fit.
+- 🏋️ Deeper workout personalization (equipment inventory, progressive overload).
+- ▶️ Curated per-exercise demo videos (replace search links).
+
+---
+
+<sub>Estimates are for planning, not medical advice.</sub>

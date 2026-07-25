@@ -35,6 +35,16 @@ class UserOut(BaseModel):
     phone: Optional[str] = None
 
 
+class ProfileUpdateIn(BaseModel):
+    name: Optional[str] = Field(default=None, max_length=100)
+    phone: Optional[str] = Field(default=None, max_length=20)
+
+
+class PasswordChangeIn(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class AuthStatus(BaseModel):
     authenticated: bool
     user: Optional[UserOut] = None
@@ -137,3 +147,37 @@ class SwapExerciseIn(BaseModel):
 class WeightsIn(BaseModel):
     weights: Dict[str, Optional[float]] = Field(default_factory=dict)
     goal_mode: Optional[str] = None
+
+
+# ---------- Profile ----------
+class ProfileIn(BaseModel):
+    age: int = Field(ge=1, le=120)
+    gender: int = Field(ge=0, le=1)
+    weight: float = Field(ge=30, le=300)
+    height: float = Field(ge=100, le=250)
+    goal: int = Field(ge=0, le=2)
+    activity: int = Field(ge=0, le=4)
+
+
+# ---------- Meal logging ----------
+class MealLogIn(BaseModel):
+    date: Optional[str] = None  # YYYY-MM-DD; defaults to today
+    meal_type: str = Field(default="Snack")
+    food_name: str = Field(min_length=1, max_length=160)
+    quantity_g: float = Field(default=100, gt=0, le=3000)
+    calories: float = Field(ge=0)
+    protein: float = 0
+    carbs: float = 0
+    fat: float = 0
+
+    @field_validator("meal_type")
+    @classmethod
+    def _mt(cls, v: str) -> str:
+        norm = (v or "").strip().title()
+        return norm if norm in {"Breakfast", "Lunch", "Dinner", "Snack"} else "Snack"
+
+
+class SwapFeedbackIn(BaseModel):
+    food_name: str = Field(min_length=1, max_length=160)
+    meal_type: Optional[str] = None
+    signal: str = Field(default="swap_out")

@@ -43,3 +43,21 @@ out/
 
 # Vercel
 .vercel
+
+# Local run artifacts
+*_run.log
+/landing.png
+/diet_plan.png
+/workout_plan.png
+/progress_plan.png
+/redesign_*.png
+/*-page-*.png
+/*.png
+
+.vercel
+
+# Local tooling / test artifacts
+.claude/
+.playwright-mcp/
+*.jpeg
+*.jpg
