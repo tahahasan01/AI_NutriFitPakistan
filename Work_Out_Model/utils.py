@@ -6,27 +6,35 @@ CALORIES_COEFF = 3.5 / 200.0
 DEFAULT_DURATION_MIN = 10
 KCALS_PER_KG = 7700.0
 
-# === Video playlists by category (self-contained; no dependency on the web layer) ===
-CORE_PLAYLIST = "https://www.youtube.com/embed/videoseries?list=PL2ov72VWpiOpnM89hVl1IChpWHnf1Rvnm"
-UPPER_PLAYLIST = "https://www.youtube.com/embed/videoseries?list=PLvf_LH4Nzg12rnMgCf5ZX96gn-15Pz9rf"
-LOWER_PLAYLIST = "https://www.youtube.com/embed/videoseries?list=PL2ov72VWpiOq5qkkM9kP8pBONIC7gV6--"
+import re
+from urllib.parse import quote_plus
 
-_CORE_MUSCLES = {"abdominals", "lower back"}
-_LOWER_MUSCLES = {"quadriceps", "hamstrings", "glutes", "calves", "adductors", "abductors"}
-_UPPER_MUSCLES = {"chest", "lats", "middle back", "traps", "shoulders", "biceps",
-                  "triceps", "forearms", "neck"}
+# Dataset prefix/artifact tokens that leaked into exercise names (e.g.
+# "FYR2 Dumbbell Clean", "HM Jumping Arm Circle", "Dumbbell Fix Dumbbell ...").
+_NAME_ARTIFACTS = re.compile(
+    r"\b(FYR2?|HM|BFR|AMRAP|WOD|EMOM|DB|KB)\b|\bDumbbell\s+Fix\b",
+    flags=re.IGNORECASE,
+)
 
 
-def get_video_for_muscle(primary_muscle: str) -> str:
-    """Map an exercise's Primary_Muscle to a YouTube playlist."""
-    pm = (primary_muscle or "").strip().lower()
-    if pm in _CORE_MUSCLES:
-        return CORE_PLAYLIST
-    if pm in _LOWER_MUSCLES:
-        return LOWER_PLAYLIST
-    if pm in _UPPER_MUSCLES:
-        return UPPER_PLAYLIST
-    return CORE_PLAYLIST
+def clean_exercise_name(name: str) -> str:
+    """Strip dataset artifacts and collapse duplicate words in an exercise name."""
+    n = _NAME_ARTIFACTS.sub(" ", str(name or ""))
+    n = re.sub(r"\bFix\b", " ", n, flags=re.IGNORECASE)
+    # collapse immediate duplicate words ("Dumbbell Dumbbell" -> "Dumbbell")
+    n = re.sub(r"\b(\w+)(\s+\1\b)+", r"\1", n, flags=re.IGNORECASE)
+    n = re.sub(r"\s+", " ", n).strip()
+    return n or str(name or "").strip()
+
+
+def get_video_for_exercise(name: str) -> str:
+    """A YouTube search link for the specific exercise's proper form.
+
+    Search URLs always resolve (unlike the old deprecated `videoseries`
+    embeds) and point at the actual movement rather than a generic playlist.
+    """
+    q = quote_plus(f"{clean_exercise_name(name)} exercise proper form")
+    return f"https://www.youtube.com/results?search_query={q}"
 
 
 def _s(x):
@@ -218,10 +226,7 @@ def generate_workout_plan(df: pd.DataFrame, user: Dict[str, Any], duration_min: 
 
     for day, exercises in plan.items():
         for ex in exercises:
-            primary = (
-                ex.get("Primary_Muscle")
-                or ex.get("BodyPart")
-                or ""
-            )
-            ex["Video_URL"] = get_video_for_muscle(primary)
+            if ex.get("Exercise_Name"):
+                ex["Exercise_Name"] = clean_exercise_name(ex["Exercise_Name"])
+            ex["Video_URL"] = get_video_for_exercise(ex.get("Exercise_Name", ""))
     return plan, total_calories, chart_data
