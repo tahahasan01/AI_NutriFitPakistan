@@ -41,10 +41,8 @@
     background-attachment: fixed;
   }
   .dark body {
-    background-image:
-      radial-gradient(900px 560px at 100% -12%, rgba(163,230,53,.08), transparent 58%),
-      radial-gradient(680px 520px at -10% 4%, rgba(163,230,53,.05), transparent 55%);
-    background-attachment: fixed;
+    /* flat, static black — no gradient wash */
+    background-image: none;
   }
   h1, h2, h3 { @apply font-display tracking-tight; }
 }
@@ -92,6 +90,15 @@
            focus:border-brand-400 focus:ring-4 focus:ring-brand-400/15;
   }
   select.input { @apply cursor-pointer; }
+  /* Keep autofilled inputs on-theme (Chrome forces a light bg otherwise) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: rgb(var(--ink));
+    -webkit-box-shadow: 0 0 0 1000px rgb(var(--paper-card)) inset;
+    caret-color: rgb(var(--ink));
+    transition: background-color 9999s ease-in-out 0s;
+  }
 
   .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
   .eyebrow { @apply text-xs font-bold uppercase tracking-[.14em] text-brand-400; }

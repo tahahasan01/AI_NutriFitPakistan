@@ -95,21 +95,17 @@ export default function HomePage() {
   return (
     <div className="space-y-28 pb-10">
       {/* ---------- HERO ---------- */}
-      <section className="relative grid items-start gap-8 pt-2 lg:grid-cols-[1.1fr,0.9fr] lg:pt-4">
-        <div aria-hidden className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-ember-300/30 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute right-0 top-52 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" />
-
-        <div className="relative animate-fade-up">
-          <span className="badge bg-brand-500/12 text-brand-500 ring-1 ring-brand-500/20">
-            <Sparkles className="h-3.5 w-3.5 text-saffron-300" /> AI-assisted nutrition & fitness
+      <section className="relative grid items-start gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:pt-4">
+        <div className="relative flex min-h-[calc(100dvh-9rem)] flex-col justify-start pt-4 animate-fade-up sm:justify-center sm:pt-0 lg:block lg:min-h-0 lg:pt-4">
+          <span className="badge w-fit bg-brand-400/10 text-brand-400 ring-1 ring-brand-400/20">
+            <Sparkles className="h-3.5 w-3.5" /> AI-assisted nutrition & fitness
           </span>
           <h1 className="mt-4 font-display text-[2rem] font-semibold leading-[1.07] sm:text-4xl lg:text-5xl">
             Eat well. Train smart.<br />
             <span className="italic text-flame">Actually</span> stick to it.
           </h1>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-ink-soft animate-fade-up-1 sm:text-lg">
-            Desi-first 7-day meal plans, home or gym workouts, and progress tracking —
-            built on locally accurate, verified food data. Not another calorie calculator.
+          <p className="mt-4 max-w-md text-base leading-relaxed text-ink-muted animate-fade-up-1 sm:text-lg">
+            Desi-first meal plans, home &amp; gym workouts, and progress tracking — on verified food data.
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3 animate-fade-up-2">
