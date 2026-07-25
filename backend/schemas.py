@@ -173,7 +173,8 @@ class MealLogIn(BaseModel):
     @field_validator("meal_type")
     @classmethod
     def _mt(cls, v: str) -> str:
-        return v if v in {"Breakfast", "Lunch", "Dinner", "Snack"} else "Snack"
+        norm = (v or "").strip().title()
+        return norm if norm in {"Breakfast", "Lunch", "Dinner", "Snack"} else "Snack"
 
 
 class SwapFeedbackIn(BaseModel):

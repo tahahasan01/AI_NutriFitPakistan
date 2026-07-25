@@ -1,6 +1,5 @@
 """Authentication routes: signup, login, logout, session check."""
 
-from __future__ import annotations
 
 import logging
 

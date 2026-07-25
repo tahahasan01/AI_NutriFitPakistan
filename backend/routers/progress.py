@@ -1,6 +1,5 @@
 """Progress routes: weekly weight log with plateau detection."""
 
-from __future__ import annotations
 
 import logging
 from typing import Dict, Optional

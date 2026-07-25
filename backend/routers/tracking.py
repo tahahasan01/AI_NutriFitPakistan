@@ -1,6 +1,5 @@
 """Profile, meal logging, food search, and swap feedback — the data loop."""
 
-from __future__ import annotations
 
 import logging
 from datetime import date, datetime, timedelta
