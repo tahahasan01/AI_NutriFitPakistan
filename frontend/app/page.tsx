@@ -72,7 +72,7 @@ export default function HomePage() {
   return (
     <div className="space-y-28 pb-10">
       {/* ---------- HERO ---------- */}
-      <section className="relative grid items-center gap-8 pt-2 lg:grid-cols-[1.1fr,0.9fr] lg:pt-4">
+      <section className="relative grid items-start gap-8 pt-2 lg:grid-cols-[1.1fr,0.9fr] lg:pt-4">
         <div aria-hidden className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-ember-300/30 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute right-0 top-52 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" />
 
@@ -111,7 +111,7 @@ export default function HomePage() {
             <img
               src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=85&w=2400&auto=format&fit=crop"
               alt="Fresh, balanced desi-friendly meals"
-              className="h-72 w-full object-cover sm:h-80 lg:h-[430px]"
+              className="h-56 w-full object-cover sm:h-72 lg:h-[360px]"
               loading="eager"
             />
             <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent" />
