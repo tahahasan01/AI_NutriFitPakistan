@@ -156,7 +156,11 @@ class DietPlanDL:
 
         # Saved/loaded artifacts
         self.model_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
-        os.makedirs(self.model_dir, exist_ok=True)
+        try:
+            os.makedirs(self.model_dir, exist_ok=True)
+        except OSError:
+            # Read-only filesystem (e.g. serverless) — models are optional (math fallback).
+            pass
 
         # Scalers for model inputs
         self.profile_num_scaler = StandardScaler()   # age, weight, height, bmi
