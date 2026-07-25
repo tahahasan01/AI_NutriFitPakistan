@@ -90,31 +90,86 @@ def build_split() -> Dict[str, List[str]]:
     }
 
 
-def pick_exercises(df: pd.DataFrame, muscles: List[str], n: int = 6) -> List[Dict[str, Any]]:
+# Olympic / explosive full-body lifts that don't belong on an isolated
+# push/pull/legs day — the dataset labels them to a single muscle (usually
+# Shoulders), so a snatch would otherwise land on "Push (Chest)" day.
+_OLYMPIC_LIFT = re.compile(r"\b(?:snatch|clean|jerk|muscle[- ]?up|thruster)\b", re.IGNORECASE)
+
+
+def _row_to_exercise(row: Any) -> Dict[str, Any]:
+    instr = _s(row.get("Instructions"))
+    instr = "" if instr.strip().lower() == "nan" else instr
+    return {
+        "Exercise_Name": row.get("Exercise_Name"),
+        "Primary_Muscle": row.get("Primary_Muscle"),
+        "Equipment": row.get("Equipment"),
+        "Difficulty": row.get("Difficulty"),
+        "Instructions": instr,
+        "MET": float(row.get("MET", 0) or 0),
+        "Type": row.get("Type"),
+        "Mechanics": row.get("Mechanics"),
+        "Level": row.get("Level"),
+    }
+
+
+def pick_exercises(df: pd.DataFrame, muscles: List[str], n: int = 6,
+                   exclude_olympic: bool = True) -> List[Dict[str, Any]]:
     if not len(df):
         return []
-    pattern = "|".join([m for m in muscles if m]) or ".*"
-    primary = df.get("Primary_Muscle", pd.Series([""] * len(df))).fillna("").astype(str)
-    subset = df[primary.str.contains(pattern, case=False, na=False)]
-    if subset.empty:
-        subset = df
-    picks = subset.head(n)
-    results = []
-    for _, row in picks.iterrows():
-        instr = _s(row.get("Instructions"))
-        instr = "" if instr.strip().lower() == "nan" else instr
-        results.append({
-            "Exercise_Name": row.get("Exercise_Name"),
-            "Primary_Muscle": row.get("Primary_Muscle"),
-            "Equipment": row.get("Equipment"),
-            "Difficulty": row.get("Difficulty"),
-            "Instructions": instr,
-            "MET": float(row.get("MET", 0) or 0),
-            "Type": row.get("Type"),
-            "Mechanics": row.get("Mechanics"),
-            "Level": row.get("Level"),
-        })
-    return results
+
+    names = df.get("Exercise_Name", pd.Series([""] * len(df))).fillna("").astype(str)
+    work = df
+    if exclude_olympic:
+        keep = ~names.str.contains(_OLYMPIC_LIFT)
+        if keep.any():
+            work = df[keep]
+
+    prim = work.get("Primary_Muscle", pd.Series([""] * len(work))).fillna("").astype(str).str.lower()
+
+    # Candidate rows per requested muscle, preserving the goal-prioritized order.
+    per_muscle = []
+    for m in muscles:
+        ml = (m or "").strip().lower()
+        rows = [row for _, row in work[prim == ml].iterrows()]
+        if rows:
+            per_muscle.append(rows)
+
+    # Round-robin across the day's muscles so it actually trains each group
+    # (e.g. Push day gets chest + shoulders + triceps, not 6 shoulder moves).
+    chosen: List[Dict[str, Any]] = []
+    seen = set()
+    ptr = [0] * len(per_muscle)
+    while len(chosen) < n and per_muscle:
+        progressed = False
+        for k in range(len(per_muscle)):
+            if len(chosen) >= n:
+                break
+            rows = per_muscle[k]
+            while ptr[k] < len(rows):
+                row = rows[ptr[k]]
+                ptr[k] += 1
+                nm = str(row.get("Exercise_Name", ""))
+                if nm in seen:
+                    continue
+                chosen.append(_row_to_exercise(row))
+                seen.add(nm)
+                progressed = True
+                break
+        if not progressed:
+            break
+
+    # Fallbacks: fill from the filtered pool, then the raw pool if still short.
+    if len(chosen) < n:
+        for _, row in work.iterrows():
+            if len(chosen) >= n:
+                break
+            nm = str(row.get("Exercise_Name", ""))
+            if nm in seen:
+                continue
+            chosen.append(_row_to_exercise(row))
+            seen.add(nm)
+
+    return chosen[:n]
 
 
 def swap_alternatives(df: pd.DataFrame, current: Dict[str, Any], preference: str) -> List[Dict[str, Any]]:
@@ -202,7 +257,9 @@ def generate_workout_plan(df: pd.DataFrame, user: Dict[str, Any], duration_min: 
     daily_calories = []
 
     for day, muscles in split.items():
-        picks = pick_exercises(df2, muscles=muscles, n=6)
+        # Olympic/explosive lifts are only appropriate on the full-body day.
+        allow_olympic = "Full Body" in day
+        picks = pick_exercises(df2, muscles=muscles, n=6, exclude_olympic=not allow_olympic)
         for ex in picks:
             ex["calories"] = round(calculate_calories(ex.get("MET", 0.0), weight, duration_min))
             instructions = _s(ex.get("Instructions"))
