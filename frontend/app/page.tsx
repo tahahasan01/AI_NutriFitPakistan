@@ -96,6 +96,13 @@ export default function HomePage() {
     <div className="space-y-28 pb-10">
       {/* ---------- HERO ---------- */}
       <section className="relative grid items-start gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:pt-4">
+        {/* Full-bleed athletic background for the first screen (mobile) */}
+        <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[100dvh] w-screen -translate-x-1/2 -translate-y-24 overflow-hidden lg:hidden">
+          <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1600&auto=format&fit=crop"
+            alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-black/68" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black" />
+        </div>
         <div className="relative flex min-h-[calc(100dvh-9rem)] flex-col justify-start pt-4 animate-fade-up sm:justify-center sm:pt-0 lg:block lg:min-h-0 lg:pt-4">
           <span className="badge w-fit bg-brand-400/10 text-brand-400 ring-1 ring-brand-400/20">
             <Sparkles className="h-3.5 w-3.5" /> AI-assisted nutrition & fitness
