@@ -104,6 +104,14 @@ function CoachInner() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { refreshConvos(); }, []);
+  // Auto-send a question passed from the dashboard quick-ask (/coach?ask=…)
+  useEffect(() => {
+    const ask = new URLSearchParams(window.location.search).get("ask");
+    if (ask) {
+      window.history.replaceState(null, "", "/coach");
+      send(ask);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
