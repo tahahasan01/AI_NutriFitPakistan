@@ -55,6 +55,9 @@ class Settings:
         self.ANTHROPIC_API_KEY: str | None = os.environ.get("ANTHROPIC_API_KEY")
         # Optional model override; each provider has a sensible default otherwise.
         self.AI_MODEL: str = os.environ.get("NUTRIFIT_AI_MODEL", "").strip()
+        # Web search for the coach (optional). Priority: Tavily -> Serper -> keyless DuckDuckGo.
+        self.TAVILY_API_KEY: str | None = os.environ.get("TAVILY_API_KEY")
+        self.SERPER_API_KEY: str | None = os.environ.get("SERPER_API_KEY")
 
         # --- Misc ---
         self.RATELIMIT_STORAGE_URI: str = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
