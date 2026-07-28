@@ -133,6 +133,24 @@ class ChatMessage(Base):
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
 
 
+class Activity(Base):
+    """A GPS-tracked activity (walk / run / ride) — Strava-style."""
+
+    __tablename__ = "activity"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)  # walk | run | ride
+    distance_km: Mapped[float] = mapped_column(Float, default=0)
+    duration_s: Mapped[int] = mapped_column(Integer, default=0)
+    calories: Mapped[float] = mapped_column(Float, default=0)
+    route: Mapped[str | None] = mapped_column(Text)  # JSON array of [lat, lng] points
+    log_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class FoodFeedback(Base):
     """Implicit taste signal (e.g. a meal swap) — training data for ranking."""
 

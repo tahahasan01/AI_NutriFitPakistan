@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Salad, Dumbbell, LineChart, ArrowRight, Sparkles, Flame, Check, TrendingUp, TrendingDown,
+  Navigation, Route as RouteIcon,
 } from "lucide-react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { BmiCard } from "@/components/BmiCard";
@@ -208,6 +209,42 @@ const ACTIONS = [
 ];
 
 /* ---------- page ---------- */
+function ActivityCard() {
+  const [sum, setSum] = useState<any>(null);
+  useEffect(() => { api.get<any>("/api/activity/summary").then(setSum).catch(() => {}); }, []);
+  const today = sum?.today;
+  const has = today && today.count > 0;
+  return (
+    <Link href="/activity" className="card card-hover group block">
+      <div className="flex items-center justify-between">
+        <span className="eyebrow">Live tracking</span>
+        <Navigation className="h-4 w-4 text-brand-400" />
+      </div>
+      {has ? (
+        <>
+          <div className="mt-3 flex items-baseline gap-1">
+            <span className="text-3xl font-extrabold tabular-nums">{today.distance_km.toFixed(2)}</span>
+            <span className="text-sm font-medium text-ink-muted">km today</span>
+          </div>
+          <div className="mt-1 flex items-center gap-3 text-sm text-ink-muted">
+            <span className="flex items-center gap-1"><Flame className="h-3.5 w-3.5 text-brand-400" />{today.calories} kcal</span>
+            <span className="flex items-center gap-1"><RouteIcon className="h-3.5 w-3.5" />{today.count} {today.count === 1 ? "session" : "sessions"}</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="mt-3 font-semibold">Track a walk, run or ride</div>
+          <p className="text-sm text-ink-muted">Live GPS distance, pace & calories — saved to your log.</p>
+        </>
+      )}
+      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-400">
+        {has ? "New activity" : "Start tracking"}
+        <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+      </span>
+    </Link>
+  );
+}
+
 function DashInner() {
   const { user } = useAuth();
   const [s, setS] = useState<Summary | null>(null);
@@ -249,6 +286,7 @@ function DashInner() {
         {/* right: insight + weight + bmi */}
         <div className="space-y-6">
           <Insight s={s} />
+          <ActivityCard />
           <WeightTrend />
           <BmiCard />
         </div>
