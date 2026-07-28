@@ -42,9 +42,10 @@ except Exception:  # pragma: no cover
     _ANTHROPIC_OK = False
 
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-# gpt-oss-20b has far more reliable tool-calling on Groq than Llama-3.3
-# (which intermittently emits malformed <function=…> calls that get rejected).
-DEFAULT_MODELS = {"groq": "openai/gpt-oss-20b", "openai": "gpt-4o-mini",
+# gpt-oss models have far more reliable tool-calling on Groq than Llama-3.3
+# (which intermittently emits malformed <function=…> calls). The 120b variant
+# follows formatting instructions (lists over tables, ChatGPT-style) much better.
+DEFAULT_MODELS = {"groq": "openai/gpt-oss-120b", "openai": "gpt-4o-mini",
                   "anthropic": "claude-sonnet-5"}
 MEAL_ORDER = {"Breakfast": 0, "Lunch": 1, "Dinner": 2, "Snack": 3}
 MAX_TOOL_ROUNDS = 6
@@ -116,11 +117,15 @@ def _day_state(db: Session, user_id: int, d: date) -> dict:
 
 
 def _system_prompt(day: dict) -> str:
-    prof = "no profile set yet — suggest they set it on the Diet page for personalized targets"
+    prof = ("NO PROFILE ON FILE. If they ask for a plan/targets, gather age, gender, weight, "
+            "height, goal, activity, then call update_profile, then generate.")
     if day.get("target"):
         t = day["target"]
-        prof = (f"targets: {t['calories']:.0f} kcal, {t['protein']:.0f}g protein, "
-                f"{t['carbs']:.0f}g carbs, {t['fat']:.0f}g fat")
+        prof = (f"PROFILE IS ALREADY ON FILE (targets: {t['calories']:.0f} kcal, "
+                f"{t['protein']:.0f}g protein, {t['carbs']:.0f}g carbs, {t['fat']:.0f}g fat). "
+                f"So for any 'make me a plan / meal plan / workout' request, call "
+                f"generate_diet_plan or generate_workout_plan IMMEDIATELY with no arguments — "
+                f"do NOT ask the user for their details again.")
     rem = day.get("remaining")
     rem_s = ""
     if rem:
@@ -128,24 +133,47 @@ def _system_prompt(day: dict) -> str:
                  f"{rem['carbs']:.0f}g C, {rem['fat']:.0f}g F.")
     logged = day.get("totals", {})
     return (
-        "You are NutriFit's AI coach for Pakistani users. You do two things: "
-        "(1) log meals from natural language, and (2) coach on nutrition & fitness.\n\n"
+        "You are NutriFit's AI coach for Pakistani users. Your job is to let users do "
+        "everything through chat instead of the app's forms. You can:\n"
+        "  • log meals from natural language,\n"
+        "  • set up / update their profile & goals (update_profile),\n"
+        "  • generate their 7-day meal plan (generate_diet_plan) and workout split "
+        "(generate_workout_plan),\n"
+        "  • answer their 'how am I doing today' from their real log (get_day),\n"
+        "  • look up general nutrition/fitness facts on the web (web_search),\n"
+        "  • and coach on nutrition & fitness.\n\n"
         "Rules:\n"
         "- Understand desi foods and phrasing (biryani, nihari, aloo gosht, '2 roti', "
         "chai, lassi) as well as English.\n"
-        "- To log a meal, call search_foods for EACH distinct food separately "
-        "(e.g. 'roti' and 'chicken karahi' in separate calls). Pass the EXACT per-100g "
-        "macros it returns to log_meal — do NOT alter them. Only if a food has no match, "
-        "estimate its per-100g values and say you estimated it.\n"
+        "- ALWAYS use the tools for real data. Two sources of truth: (a) the PRODUCT — "
+        "search_foods, get_day, generate_* and the user's profile; (b) the WEB — web_search "
+        "for general facts/guidelines the product doesn't store. Never invent numbers.\n"
+        "- To log a meal, call search_foods for EACH distinct food separately. Pass the EXACT "
+        "per-100g macros it returns to log_meal — do NOT alter them. Only if a food has no "
+        "match, estimate its per-100g values and say you estimated it.\n"
         "- Infer a sensible quantity in grams (1 roti ~40g, 1 cup cooked rice ~150g, "
         "1 egg ~50g). Confirm big assumptions briefly.\n"
+        "- If a profile already exists (targets are shown in 'User context' below), call "
+        "generate_diet_plan / generate_workout_plan straight away — do NOT ask for details "
+        "again. Only when there is NO profile, gather age, gender, weight, height, goal, "
+        "activity, call update_profile, then generate.\n"
+        "- For general/factual questions (safety, dosages, guidelines, 'is X healthy'), call "
+        "web_search and CITE the source links. For the user's own data, use the product tools.\n"
         "- Pick meal_type from context; default to Snack.\n"
-        "- After logging, tell the user what you logged and how it fits their remaining budget.\n"
-        "- Be concise, warm, and practical. Give numbers. Never invent the user's data — "
-        "use the tools.\n"
-        "- Format replies with clean markdown so they render nicely: a short opening line, "
-        "then details as a compact markdown table or bulleted list, and end with the key "
-        "takeaway (e.g. remaining budget) in **bold**. Keep it tight — no walls of text.\n"
+        "- TONE: warm, encouraging and genuinely helpful — like a supportive personal coach, "
+        "not a database. Open with a short friendly line, speak to 'you', celebrate wins "
+        "('nice work hitting your protein!'), and close with an encouraging nudge or a helpful "
+        "next step ('want me to log that?'). A tasteful emoji is fine; never robotic or cold.\n"
+        "- FORMAT for a NARROW phone/panel. For ANY meal or workout PLAN you MUST NOT use a "
+        "markdown table. Use exactly this shape — a bold day heading, then a short bullet list:\n"
+        "    **Day 1 — Push (Chest/Shoulders/Triceps)**\n"
+        "    - Incline Bench Press\n"
+        "    - Seated Shoulder Press\n"
+        "    **Day 2 — Pull (Back/Biceps)**\n"
+        "    - ...\n"
+        "  Never use tables for plans, and never use raw HTML like <br>.\n"
+        "- Plans are long — keep each day to a few key items and offer to expand a specific day "
+        "rather than dumping all 36 exercises at once. Key numbers in **bold**. Warm, brief intro.\n"
         "- Not a doctor; add a short caution for medical questions.\n\n"
         f"User context — {prof}.\n"
         f"Logged so far today: {logged.get('calories', 0):.0f} kcal, "
@@ -190,7 +218,149 @@ _TOOL_DEFS = [
         "description": "Get the user's current logged totals, targets, and remaining budget for today.",
         "parameters": {"type": "object", "properties": {}},
     },
+    {
+        "name": "web_search",
+        "description": "Search the web for current, factual nutrition/fitness knowledge the app's "
+                       "own data can't answer (e.g. 'is creatine safe', 'protein per kg for muscle "
+                       "gain', 'benefits of intermittent fasting', latest guidelines). Use ONLY for "
+                       "general knowledge — NEVER for the user's own logs, targets, or logging. "
+                       "Summarise the findings and cite the source links in your reply.",
+        "parameters": {
+            "type": "object",
+            "properties": {"query": {"type": "string", "description": "the search query"}},
+            "required": ["query"],
+        },
+    },
+    {
+        "name": "update_profile",
+        "description": "Create or update the user's body profile so calorie/macro targets can be "
+                       "computed. Pass ONLY the fields the user actually provided.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "age": {"type": "integer"},
+                "gender": {"type": "integer", "description": "0=male, 1=female"},
+                "weight_kg": {"type": "number"},
+                "height_cm": {"type": "number"},
+                "goal": {"type": "integer", "description": "0=lose fat, 1=gain muscle, 2=maintain"},
+                "activity": {"type": "integer", "description": "0=sedentary,1=light,2=moderate,3=active,4=very active"},
+            },
+        },
+    },
+    {
+        "name": "generate_diet_plan",
+        "description": "Generate the user's 7-day desi meal plan (requires a profile — call "
+                       "update_profile first if missing). Returns targets and each day's meals.",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "generate_workout_plan",
+        "description": "Generate the user's workout split (requires a profile). Ask/choose Gym or Home.",
+        "parameters": {
+            "type": "object",
+            "properties": {"preference": {"type": "string", "enum": ["Gym", "Home"]}},
+        },
+    },
 ]
+
+
+def _web_search(query: str, max_results: int = 5) -> dict:
+    """Web search with graceful provider fallback: Tavily -> Serper -> DuckDuckGo."""
+    s = get_settings()
+    q = (query or "").strip()
+    if not q:
+        return {"error": "empty query"}
+    if getattr(s, "TAVILY_API_KEY", None):
+        try:
+            import requests
+            r = requests.post("https://api.tavily.com/search", timeout=12, json={
+                "api_key": s.TAVILY_API_KEY, "query": q, "max_results": max_results,
+                "include_answer": True, "search_depth": "basic"})
+            if r.ok:
+                j = r.json()
+                return {"answer": j.get("answer"), "results": [
+                    {"title": x.get("title"), "url": x.get("url"), "content": (x.get("content") or "")[:500]}
+                    for x in j.get("results", [])[:max_results]]}
+        except Exception as e:  # pragma: no cover
+            logger.warning("tavily search failed: %s", e)
+    if getattr(s, "SERPER_API_KEY", None):
+        try:
+            import requests
+            r = requests.post("https://google.serper.dev/search", timeout=12,
+                              headers={"X-API-KEY": s.SERPER_API_KEY, "Content-Type": "application/json"},
+                              json={"q": q, "num": max_results})
+            if r.ok:
+                j = r.json()
+                ans = (j.get("answerBox") or {}).get("answer") or (j.get("knowledgeGraph") or {}).get("description")
+                return {"answer": ans, "results": [
+                    {"title": x.get("title"), "url": x.get("link"), "content": (x.get("snippet") or "")[:500]}
+                    for x in j.get("organic", [])[:max_results]]}
+        except Exception as e:  # pragma: no cover
+            logger.warning("serper search failed: %s", e)
+    # Keyless fallback
+    try:
+        try:
+            from ddgs import DDGS
+        except Exception:
+            from duckduckgo_search import DDGS  # older package name
+        with DDGS() as ddg:
+            res = list(ddg.text(q, max_results=max_results))
+        if res:
+            return {"results": [
+                {"title": x.get("title"), "url": x.get("href"), "content": (x.get("body") or "")[:500]}
+                for x in res]}
+    except Exception as e:  # pragma: no cover
+        logger.warning("ddg search failed: %s", e)
+    return {"error": "web search unavailable",
+            "note": "Answer from general knowledge and tell the user it isn't web-verified."}
+
+
+def _get_profile(db: Session, user_id: int):
+    return db.scalar(select(UserProfile).where(UserProfile.user_id == user_id))
+
+
+def _update_profile(db: Session, user_id: int, args: dict) -> dict:
+    p = _get_profile(db, user_id)
+    if not p:
+        p = UserProfile(user_id=user_id)
+        db.add(p)
+    for arg, col, cast in [("age", "age", int), ("gender", "gender", int),
+                           ("weight_kg", "weight_kg", float), ("height_cm", "height_cm", float),
+                           ("goal", "goal", int), ("activity", "activity", int)]:
+        if args.get(arg) is not None:
+            try:
+                setattr(p, col, cast(args[arg]))
+            except (ValueError, TypeError):
+                pass
+    db.commit()
+    db.refresh(p)
+    targets = ml.compute_targets(p.age, p.gender, p.weight_kg, p.height_cm, p.goal, p.activity)
+    return {"ok": True, "profile": {"age": p.age, "gender": p.gender, "weight_kg": p.weight_kg,
+            "height_cm": p.height_cm, "goal": p.goal, "activity": p.activity}, "targets": targets}
+
+
+def _gen_diet(db: Session, user_id: int) -> dict:
+    p = _get_profile(db, user_id)
+    if not p:
+        return {"error": "no profile yet — call update_profile first (age, gender, weight, height, goal, activity)."}
+    plan = ml.generate_diet(p.age, p.gender, p.weight_kg, p.height_cm, p.goal, p.activity, [])
+    if not plan or not plan.get("weekly_plan"):
+        return {"error": "could not generate a plan"}
+    days = [{"day": d.get("day"), "meals": [
+        f"{m['name']} — {round(m['calories'])} kcal (P{round(m['protein'])}/C{round(m['carbs'])}/F{round(m['fat'])})"
+        for m in d.get("meals", [])]} for d in plan["weekly_plan"]]
+    return {"targets": plan.get("targets"), "tdee": plan.get("tdee"), "days": days}
+
+
+def _gen_workout(db: Session, user_id: int, preference: str) -> dict:
+    p = _get_profile(db, user_id)
+    if not p:
+        return {"error": "no profile yet — call update_profile first."}
+    pref = "Home" if str(preference or "").lower().startswith("home") else "Gym"
+    w = ml.generate_workout(p.age, p.gender, p.weight_kg, p.height_cm, p.goal, p.activity, pref)
+    plan = {day: [f"{e['Exercise_Name']} ({e.get('Primary_Muscle', '')}) — {e.get('calories', 0)} kcal"
+                  for e in exs] for day, exs in (w.get("plan") or {}).items()}
+    return {"preference": pref, "total_calories": w.get("total_calories"), "plan": plan}
 
 
 def _dispatch(name: str, args: dict, *, db: Session, user_id: int, d: date, actions: list) -> dict:
@@ -198,6 +368,14 @@ def _dispatch(name: str, args: dict, *, db: Session, user_id: int, d: date, acti
         return {"results": ml.search_foods(str(args.get("query", "")), 12)}
     if name == "get_day":
         return _day_state(db, user_id, d)
+    if name == "web_search":
+        return _web_search(str(args.get("query", "")))
+    if name == "update_profile":
+        return _update_profile(db, user_id, args)
+    if name == "generate_diet_plan":
+        return _gen_diet(db, user_id)
+    if name == "generate_workout_plan":
+        return _gen_workout(db, user_id, args.get("preference", "Gym"))
     if name == "log_meal":
         qty = max(0.0, float(args.get("quantity_g", 0)))
         f = qty / 100.0

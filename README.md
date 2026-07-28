@@ -35,15 +35,32 @@ SQLAlchemy · Neon/Postgres · deployed on Vercel.
 
 ## Features
 
-**AI Coach** *(new)*
+**AI Coach** *(new)* — do everything through chat instead of the app's forms
 - 💬 **Conversational assistant** grounded in your profile, today's log, and the
-  verified desi dataset. It does two things in one chat:
-  - **Natural-language meal logging** — *"aloo gosht with 2 roti and a lassi"* is
-    parsed into foods + portions + macros and logged for you.
+  verified desi dataset:
+  - **Natural-language logging** — *"aloo gosht with 2 roti and a lassi"* → parsed
+    into foods + portions + macros and logged for you.
+  - **Do it for me** — *"set my profile: 26, 72 kg, lose fat"*, *"make me a meal
+    plan"*, *"give me a gym workout"* — it updates your profile and generates your
+    plans right in the chat.
   - **Coaching** — *"can I eat biryani tonight and stay on target?"* answered
-    against your remaining calorie/macro budget, with swaps.
-- Powered by Claude (tool-use). Optional: set `ANTHROPIC_API_KEY` to enable it;
-  the app runs fine without it.
+    against your remaining budget, with swaps.
+  - 🌐 **Web search with citations** — general questions (*"is creatine safe?"*)
+    are answered from live web results **with source links**.
+- 🪟 **Floating coach** on every app page (launcher + compact chat), plus a
+  full-screen **ChatGPT-style** coach with saved conversation history, warm tone,
+  and clean, well-spaced formatting.
+- Provider-flexible & optional: set `GROQ_API_KEY` (free tier), `OPENAI_API_KEY`,
+  or `ANTHROPIC_API_KEY`. Web search uses `TAVILY_API_KEY`/`SERPER_API_KEY` if set,
+  else a keyless DuckDuckGo fallback. With no key, the app runs fine without the coach.
+
+**Design & UX** *(new)*
+- 🌑 **Dark, electric-lime, mobile-first** athletic theme (dark by default) with a
+  bold **Space Grotesk** display font — built to feel like a native app on a phone.
+- 📱 **App-style bottom tab bar** (Home · Coach · Diet · Workout · Progress) on
+  mobile; sidebar on desktop.
+- ✨ **Motion & polish** — animated hero, scroll-reveal + hover-glow cards,
+  full-bleed imagery, and responsive layouts tuned for both phone and desktop.
 
 **Nutrition**
 - 🍽️ **7-day meal plans** matched to your calorie *and* macro targets
@@ -67,8 +84,8 @@ SQLAlchemy · Neon/Postgres · deployed on Vercel.
   **plateau detection**.
 - ⚙️ **Settings** — light/dark mode, avatar upload, profile & security, account
   deletion.
-- 🧭 **App shell** — collapsible sidebar, sticky top bar, fully responsive
-  (mobile + desktop).
+- 🧭 **App shell** — desktop sidebar + mobile bottom tab bar, sticky top bar with
+  quick logout, and the floating coach available everywhere.
 
 **Foundations**
 - 🔐 Session auth (signed, `HttpOnly` cookies), PBKDF2 password hashing, rate
@@ -308,8 +325,10 @@ production schema changes.
 | `DATABASE_URL` | ✅ | `postgresql://…` (Neon) or `mysql+pymysql://…`; `postgres://` is auto-normalized to `psycopg` v3 |
 | `AUTO_CREATE_DB` | – | `1` to create tables on startup |
 | `CORS_ORIGINS` | – | Only if calling the API cross-origin (not via the Next proxy) |
-| `ANTHROPIC_API_KEY` | – | Enables the **AI Coach**; feature is off if unset |
-| `NUTRIFIT_AI_MODEL` | – | Claude model for the coach (default `claude-sonnet-5`) |
+| `GROQ_API_KEY` | – | Enables the **AI Coach** (free tier). Priority: Groq → OpenAI → Anthropic |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | – | Alternative coach providers |
+| `NUTRIFIT_AI_MODEL` | – | Model override (default per provider, e.g. Groq `openai/gpt-oss-120b`) |
+| `TAVILY_API_KEY` / `SERPER_API_KEY` | – | Better coach **web search**; keyless DuckDuckGo fallback otherwise |
 | `RATELIMIT_STORAGE_URI` | – | `memory://` (single instance) or `redis://…` (multi-instance) |
 
 In production the app **refuses to start** without `NUTRIFIT_SECRET` and

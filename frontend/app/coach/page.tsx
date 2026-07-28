@@ -40,26 +40,28 @@ const APP_LINKS = [
   { href: "/progress", label: "Progress", icon: LineChart },
 ];
 
-/* ---------- structured markdown rendering ---------- */
+/* ---------- structured markdown rendering (ChatGPT-style spacing) ---------- */
 const MD = {
-  p: (p: any) => <p className="mb-2 last:mb-0 leading-relaxed" {...p} />,
+  p: (p: any) => <p className="mb-4 leading-relaxed last:mb-0" {...p} />,
   strong: (p: any) => <strong className="font-semibold text-ink" {...p} />,
-  ul: (p: any) => <ul className="mb-2 ml-4 list-disc space-y-1" {...p} />,
-  ol: (p: any) => <ol className="mb-2 ml-4 list-decimal space-y-1" {...p} />,
-  li: (p: any) => <li className="leading-relaxed" {...p} />,
-  h1: (p: any) => <h3 className="mb-1 mt-2 font-display text-lg font-semibold" {...p} />,
-  h2: (p: any) => <h3 className="mb-1 mt-2 font-display text-base font-semibold" {...p} />,
-  h3: (p: any) => <h4 className="mb-1 mt-2 font-semibold" {...p} />,
-  a: (p: any) => <a className="text-brand-600 underline" target="_blank" rel="noreferrer" {...p} />,
+  em: (p: any) => <em className="italic" {...p} />,
+  ul: (p: any) => <ul className="mb-4 ml-5 list-disc space-y-2 marker:text-brand-400" {...p} />,
+  ol: (p: any) => <ol className="mb-4 ml-5 list-decimal space-y-2" {...p} />,
+  li: (p: any) => <li className="pl-1 leading-relaxed" {...p} />,
+  h1: (p: any) => <h3 className="mb-2 mt-6 font-display text-lg font-semibold first:mt-0" {...p} />,
+  h2: (p: any) => <h3 className="mb-2 mt-6 font-display text-base font-semibold first:mt-0" {...p} />,
+  h3: (p: any) => <h4 className="mb-2 mt-5 font-semibold first:mt-0" {...p} />,
+  hr: () => <hr className="my-5 border-white/10" />,
+  a: (p: any) => <a className="text-brand-400 underline" target="_blank" rel="noreferrer" {...p} />,
   code: (p: any) => <code className="rounded bg-paper-warm px-1 py-0.5 text-[13px]" {...p} />,
   table: (p: any) => (
-    <div className="my-2 overflow-x-auto">
+    <div className="my-4 overflow-x-auto">
       <table className="w-full border-collapse text-[13px]" {...p} />
     </div>
   ),
   thead: (p: any) => <thead className="bg-paper-warm" {...p} />,
-  th: (p: any) => <th className="border border-ink/[.1] px-2.5 py-1.5 text-left font-semibold" {...p} />,
-  td: (p: any) => <td className="border border-ink/[.08] px-2.5 py-1.5" {...p} />,
+  th: (p: any) => <th className="border border-ink/[.1] px-2.5 py-2 text-left font-semibold" {...p} />,
+  td: (p: any) => <td className="border border-ink/[.08] px-2.5 py-2" {...p} />,
 };
 
 function Bubble({ m }: { m: Msg }) {
@@ -70,7 +72,7 @@ function Bubble({ m }: { m: Msg }) {
         isUser ? "max-w-[80%] bg-brand-500 text-white" : "w-full bg-paper-card text-ink ring-1 ring-ink/[.06]"}`}>
         {isUser
           ? <p className="whitespace-pre-wrap text-sm leading-relaxed sm:text-[15px]">{m.content}</p>
-          : <div className="text-sm sm:text-[15px]"><ReactMarkdown remarkPlugins={[remarkGfm]} components={MD}>{m.content}</ReactMarkdown></div>}
+          : <div className="text-sm sm:text-[15px]"><ReactMarkdown remarkPlugins={[remarkGfm]} components={MD}>{m.content.replace(/<br\s*\/?>/gi, "\n")}</ReactMarkdown></div>}
         {m.logged && m.logged.length > 0 && (
           <div className="mt-2 space-y-1 border-t border-ink/[.08] pt-2">
             {m.logged.map((l, i) => (

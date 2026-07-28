@@ -7,6 +7,7 @@ import { Menu, Leaf, Settings, PanelLeftClose, PanelLeftOpen, LogOut } from "luc
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
 import { BottomNav } from "@/components/BottomNav";
+import { FloatingCoach } from "@/components/FloatingCoach";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/Avatar";
 import { usePrefs } from "@/components/PrefsProvider";
@@ -96,6 +97,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile app-style bottom tab bar */}
       <BottomNav />
+
+      {/* Floating AI Coach launcher (all app pages) */}
+      <FloatingCoach />
     </div>
   );
 }
