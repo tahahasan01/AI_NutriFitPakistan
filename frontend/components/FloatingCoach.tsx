@@ -5,6 +5,7 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Sparkles, Send, X, Maximize2, Check, Flame } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { api, ApiError } from "@/lib/api";
 
 type Role = "user" | "assistant";
@@ -68,16 +69,28 @@ export function FloatingCoach() {
   return (
     <>
       {/* Launcher FAB */}
-      {!open && (
-        <button onClick={() => setOpen(true)} aria-label="Open AI Coach"
-          className="fixed bottom-20 right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-brand-400 text-night shadow-glow transition hover:scale-105 active:scale-95 lg:bottom-6 lg:right-6">
-          <Sparkles className="h-6 w-6" />
-        </button>
-      )}
+      <AnimatePresence>
+        {!open && (
+          <motion.button onClick={() => setOpen(true)} aria-label="Open AI Coach"
+            initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 20 }}
+            whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.9 }}
+            className="fixed bottom-20 right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-brand-400 text-night shadow-glow lg:bottom-6 lg:right-6">
+            <motion.span aria-hidden className="absolute inset-0 rounded-full bg-brand-400"
+              animate={{ scale: [1, 1.35], opacity: [0.5, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }} />
+            <Sparkles className="relative h-6 w-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chat panel */}
+      <AnimatePresence>
       {open && (
-        <div className="fixed inset-x-3 bottom-20 top-16 z-50 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-paper-card shadow-lift sm:inset-x-auto sm:right-6 sm:bottom-6 sm:top-auto sm:h-[580px] sm:w-[430px] lg:bottom-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 12 }}
+          transition={{ type: "spring", stiffness: 260, damping: 24 }}
+          style={{ transformOrigin: "bottom right" }}
+          className="fixed inset-x-3 bottom-20 top-16 z-50 flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-paper-card shadow-lift sm:inset-x-auto sm:right-6 sm:bottom-6 sm:top-auto sm:h-[580px] sm:w-[430px] lg:bottom-6">
           {/* header */}
           <div className="flex items-center gap-2.5 border-b border-white/[.07] px-4 py-3">
             <span className="grid h-8 w-8 place-items-center rounded-xl bg-brand-400/15 text-brand-400"><Sparkles className="h-5 w-5" /></span>
@@ -154,8 +167,9 @@ export function FloatingCoach() {
               </button>
             </form>
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </>
   );
 }
