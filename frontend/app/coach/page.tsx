@@ -70,7 +70,7 @@ function Bubble({ m }: { m: Msg }) {
         isUser ? "max-w-[80%] bg-brand-500 text-white" : "w-full bg-paper-card text-ink ring-1 ring-ink/[.06]"}`}>
         {isUser
           ? <p className="whitespace-pre-wrap text-sm leading-relaxed sm:text-[15px]">{m.content}</p>
-          : <div className="text-sm sm:text-[15px]"><ReactMarkdown remarkPlugins={[remarkGfm]} components={MD}>{m.content}</ReactMarkdown></div>}
+          : <div className="text-sm sm:text-[15px]"><ReactMarkdown remarkPlugins={[remarkGfm]} components={MD}>{m.content.replace(/<br\s*\/?>/gi, "\n")}</ReactMarkdown></div>}
         {m.logged && m.logged.length > 0 && (
           <div className="mt-2 space-y-1 border-t border-ink/[.08] pt-2">
             {m.logged.map((l, i) => (

@@ -116,11 +116,15 @@ def _day_state(db: Session, user_id: int, d: date) -> dict:
 
 
 def _system_prompt(day: dict) -> str:
-    prof = "no profile set yet — suggest they set it on the Diet page for personalized targets"
+    prof = ("NO PROFILE ON FILE. If they ask for a plan/targets, gather age, gender, weight, "
+            "height, goal, activity, then call update_profile, then generate.")
     if day.get("target"):
         t = day["target"]
-        prof = (f"targets: {t['calories']:.0f} kcal, {t['protein']:.0f}g protein, "
-                f"{t['carbs']:.0f}g carbs, {t['fat']:.0f}g fat")
+        prof = (f"PROFILE IS ALREADY ON FILE (targets: {t['calories']:.0f} kcal, "
+                f"{t['protein']:.0f}g protein, {t['carbs']:.0f}g carbs, {t['fat']:.0f}g fat). "
+                f"So for any 'make me a plan / meal plan / workout' request, call "
+                f"generate_diet_plan or generate_workout_plan IMMEDIATELY with no arguments — "
+                f"do NOT ask the user for their details again.")
     rem = day.get("remaining")
     rem_s = ""
     if rem:
@@ -148,16 +152,27 @@ def _system_prompt(day: dict) -> str:
         "match, estimate its per-100g values and say you estimated it.\n"
         "- Infer a sensible quantity in grams (1 roti ~40g, 1 cup cooked rice ~150g, "
         "1 egg ~50g). Confirm big assumptions briefly.\n"
-        "- If the user asks for a plan/targets but has no profile, first gather age, gender, "
-        "weight, height, goal, activity and call update_profile, then generate.\n"
+        "- If a profile already exists (targets are shown in 'User context' below), call "
+        "generate_diet_plan / generate_workout_plan straight away — do NOT ask for details "
+        "again. Only when there is NO profile, gather age, gender, weight, height, goal, "
+        "activity, call update_profile, then generate.\n"
         "- For general/factual questions (safety, dosages, guidelines, 'is X healthy'), call "
         "web_search and CITE the source links. For the user's own data, use the product tools.\n"
         "- Pick meal_type from context; default to Snack.\n"
-        "- Be concise, warm, and practical. Give numbers. Never invent the user's data — "
-        "use the tools.\n"
-        "- Format replies with clean markdown so they render nicely: a short opening line, "
-        "then details as a compact markdown table or bulleted list, and end with the key "
-        "takeaway (e.g. remaining budget) in **bold**. Keep it tight — no walls of text.\n"
+        "- TONE: warm, encouraging and genuinely helpful — like a supportive personal coach, "
+        "not a database. Open with a short friendly line, speak to 'you', celebrate wins "
+        "('nice work hitting your protein!'), and close with an encouraging nudge or a helpful "
+        "next step ('want me to log that?'). A tasteful emoji is fine; never robotic or cold.\n"
+        "- FORMAT for a NARROW phone/panel. For ANY meal or workout PLAN you MUST NOT use a "
+        "markdown table. Use exactly this shape — a bold day heading, then a short bullet list:\n"
+        "    **Day 1 — Push (Chest/Shoulders/Triceps)**\n"
+        "    - Incline Bench Press\n"
+        "    - Seated Shoulder Press\n"
+        "    **Day 2 — Pull (Back/Biceps)**\n"
+        "    - ...\n"
+        "  Never use tables for plans, and never use raw HTML like <br>.\n"
+        "- Plans are long — keep each day to a few key items and offer to expand a specific day "
+        "rather than dumping all 36 exercises at once. Key numbers in **bold**. Warm, brief intro.\n"
         "- Not a doctor; add a short caution for medical questions.\n\n"
         f"User context — {prof}.\n"
         f"Logged so far today: {logged.get('calories', 0):.0f} kcal, "
