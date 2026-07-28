@@ -14,17 +14,23 @@ interface ChatResponse { reply: string; actions: LoggedAction[]; conversation_id
 
 const SUGGESTIONS = ["How much protein do I have left?", "I had 2 rotis and daal", "Make me a workout"];
 
+// ChatGPT-style generous spacing so responses breathe.
 const MD = {
-  p: (p: any) => <p className="mb-1.5 last:mb-0 leading-relaxed" {...p} />,
+  p: (p: any) => <p className="mb-3 leading-relaxed last:mb-0" {...p} />,
   strong: (p: any) => <strong className="font-semibold text-ink" {...p} />,
-  ul: (p: any) => <ul className="mb-1.5 ml-4 list-disc space-y-0.5" {...p} />,
-  ol: (p: any) => <ol className="mb-1.5 ml-4 list-decimal space-y-0.5" {...p} />,
-  li: (p: any) => <li className="leading-relaxed" {...p} />,
+  em: (p: any) => <em className="italic" {...p} />,
+  h1: (p: any) => <h3 className="mb-2 mt-5 text-[15px] font-bold first:mt-0" {...p} />,
+  h2: (p: any) => <h3 className="mb-2 mt-5 text-[15px] font-bold first:mt-0" {...p} />,
+  h3: (p: any) => <h4 className="mb-2 mt-4 font-semibold first:mt-0" {...p} />,
+  ul: (p: any) => <ul className="mb-3 ml-4 list-disc space-y-2 marker:text-brand-400" {...p} />,
+  ol: (p: any) => <ol className="mb-3 ml-4 list-decimal space-y-2" {...p} />,
+  li: (p: any) => <li className="pl-1 leading-relaxed" {...p} />,
+  hr: () => <hr className="my-4 border-white/10" />,
   a: (p: any) => <a className="text-brand-400 underline" target="_blank" rel="noreferrer" {...p} />,
   code: (p: any) => <code className="rounded bg-paper-warm px-1 text-[12px]" {...p} />,
-  table: (p: any) => <div className="my-1.5 overflow-x-auto"><table className="w-full border-collapse text-[12px]" {...p} /></div>,
-  th: (p: any) => <th className="border border-ink/[.1] px-2 py-1 text-left font-semibold" {...p} />,
-  td: (p: any) => <td className="border border-ink/[.08] px-2 py-1" {...p} />,
+  table: (p: any) => <div className="my-3 overflow-x-auto"><table className="w-full min-w-[420px] border-collapse text-[12px]" {...p} /></div>,
+  th: (p: any) => <th className="border border-ink/[.1] px-2 py-1.5 text-left font-semibold" {...p} />,
+  td: (p: any) => <td className="border border-ink/[.08] px-2 py-1.5" {...p} />,
 };
 
 export function FloatingCoach() {

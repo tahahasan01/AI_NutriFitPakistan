@@ -42,9 +42,10 @@ except Exception:  # pragma: no cover
     _ANTHROPIC_OK = False
 
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-# gpt-oss-20b has far more reliable tool-calling on Groq than Llama-3.3
-# (which intermittently emits malformed <function=…> calls that get rejected).
-DEFAULT_MODELS = {"groq": "openai/gpt-oss-20b", "openai": "gpt-4o-mini",
+# gpt-oss models have far more reliable tool-calling on Groq than Llama-3.3
+# (which intermittently emits malformed <function=…> calls). The 120b variant
+# follows formatting instructions (lists over tables, ChatGPT-style) much better.
+DEFAULT_MODELS = {"groq": "openai/gpt-oss-120b", "openai": "gpt-4o-mini",
                   "anthropic": "claude-sonnet-5"}
 MEAL_ORDER = {"Breakfast": 0, "Lunch": 1, "Dinner": 2, "Snack": 3}
 MAX_TOOL_ROUNDS = 6
