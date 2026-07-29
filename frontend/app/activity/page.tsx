@@ -1,14 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Footprints, Bike, Zap, Play, Pause, Square, Flame, Timer, Gauge,
-  Navigation, Trash2, Satellite, Route as RouteIcon,
+  Navigation, Trash2, Satellite, Route as RouteIcon, Map as MapIcon,
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { RequireAuth } from "@/components/RequireAuth";
 import { motion } from "@/components/motion";
 import { api } from "@/lib/api";
+
+// Leaflet touches window on import — load it client-only.
+const LiveMap = dynamic(() => import("@/components/LiveMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="grid h-full w-full place-items-center rounded-xl border border-ink/10 bg-paper-warm text-xs text-ink-faint">
+      Loading map…
+    </div>
+  ),
+});
 
 type Kind = "walk" | "run" | "ride";
 type Pt = [number, number]; // [lat, lng]
@@ -145,6 +156,10 @@ function ActivityInner() {
   const [saving, setSaving] = useState(false);
   const [feed, setFeed] = useState<Activity[]>([]);
   const [weight, setWeight] = useState(70);
+  const [steps, setSteps] = useState(0);
+  const [stepsOn, setStepsOn] = useState(false); // motion sensor actually delivering data
+  const [here, setHere] = useState<Pt | null>(null);   // current location (for the map)
+  const [locMsg, setLocMsg] = useState<string | null>(null);
 
   const watchId = useRef<number | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -153,6 +168,14 @@ function ActivityInner() {
   const kindRef = useRef<Kind>("run");
   const weightRef = useRef(70);
   const distRef = useRef(0);
+  const fixesRef = useRef(0);              // GPS fix counter (warm-up discard)
+  const locWatch = useRef<number | null>(null); // live-location watch id
+  const wakeLock = useRef<any>(null);      // Screen Wake Lock sentinel
+  // Step detection (accelerometer peak counting)
+  const motionHandler = useRef<((e: DeviceMotionEvent) => void) | null>(null);
+  const gravRef = useRef(9.8);
+  const inStepRef = useRef(false);
+  const lastStepTs = useRef(0);
 
   const accent = KINDS.find((k) => k.key === kind)!.accent;
 
@@ -163,31 +186,116 @@ function ActivityInner() {
     } catch { /* ignore */ }
   }, []);
 
+  // Live location: a continuously-updating "you are here" dot on the map (like Google Maps),
+  // running whenever the page is open and no workout is being recorded.
+  const startLiveLocation = useCallback(() => {
+    if (!("geolocation" in navigator)) { setLocMsg("This device/browser can't do location."); return; }
+    if (typeof window !== "undefined" && window.isSecureContext === false) {
+      // http:// over a LAN IP on a phone → browsers block GPS entirely.
+      setLocMsg("Live location needs a secure (https) connection. On your phone it works once the app is deployed over HTTPS.");
+      return;
+    }
+    if (locWatch.current != null) return; // already watching
+    setLocMsg(null);
+    locWatch.current = navigator.geolocation.watchPosition(
+      (pos) => { setHere([pos.coords.latitude, pos.coords.longitude]); setLocMsg(null); },
+      (err) => setLocMsg(
+        err.code === err.PERMISSION_DENIED
+          ? "Location permission blocked. Allow location for this site to see your live position."
+          : "Waiting for GPS… make sure location is on."
+      ),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 1000 },
+    );
+  }, []);
+  const stopLiveLocation = useCallback(() => {
+    if (locWatch.current != null) { navigator.geolocation.clearWatch(locWatch.current); locWatch.current = null; }
+  }, []);
+
+  // ---- Screen Wake Lock: keep the screen on so the browser doesn't suspend GPS ----
+  const acquireWakeLock = useCallback(async () => {
+    try { wakeLock.current = await (navigator as any).wakeLock?.request("screen"); } catch { /* unsupported */ }
+  }, []);
+  const releaseWakeLock = useCallback(() => {
+    try { wakeLock.current?.release?.(); } catch { /* noop */ }
+    wakeLock.current = null;
+  }, []);
+
   useEffect(() => {
     loadFeed();
+    startLiveLocation(); // live "you are here" dot from the moment the page opens
     api.get<{ exists: boolean; weight?: number }>("/api/profile")
       .then((p) => { if (p.exists && p.weight) { setWeight(p.weight); weightRef.current = p.weight; } })
       .catch(() => {});
-    return () => {
-      if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
-      if (timer.current) clearInterval(timer.current);
+    // Wake Lock is dropped when the tab is hidden — re-acquire it on return if still tracking.
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && watchId.current != null && !wakeLock.current) {
+        acquireWakeLock();
+      }
     };
-  }, [loadFeed]);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      if (watchId.current != null) { navigator.geolocation.clearWatch(watchId.current); watchId.current = null; }
+      if (locWatch.current != null) { navigator.geolocation.clearWatch(locWatch.current); locWatch.current = null; }
+      if (timer.current) clearInterval(timer.current);
+      if (motionHandler.current) window.removeEventListener("devicemotion", motionHandler.current);
+      try { wakeLock.current?.release?.(); } catch { /* noop */ }
+    };
+  }, [loadFeed, acquireWakeLock, startLiveLocation]);
 
   const onPos = useCallback((pos: GeolocationPosition) => {
     if (pausedRef.current) return;
     const { latitude, longitude, accuracy: acc } = pos.coords;
     setAccuracy(acc);
+    // Warm-up: the GPS chip is noisy on the first couple of fixes — skip them.
+    fixesRef.current += 1;
+    if (fixesRef.current <= 2) { lastPt.current = [latitude, longitude]; return; }
+    // Accuracy gate: a fix worse than ~30 m is unreliable — don't add distance/route.
+    if (acc > 30) return;
     const pt: Pt = [latitude, longitude];
     if (lastPt.current) {
       const step = metresBetween(lastPt.current, pt);
-      // Reject GPS noise (< 1.5m jitter) and impossible jumps (> 80m/tick).
-      if (step < 1.5 || step > 80) { if (step >= 1.5) lastPt.current = pt; return; }
+      // Reject GPS jitter (< 2 m) and impossible jumps (> 80 m/tick).
+      if (step < 2 || step > 80) { if (step >= 2) lastPt.current = pt; return; }
       distRef.current += step;
       setDistanceM(distRef.current);
     }
     lastPt.current = pt;
     setPoints((prev) => [...prev, pt]);
+  }, []);
+
+  // ---- Step counter via device accelerometer (approximate; foreground only) ----
+  const startSteps = useCallback(async () => {
+    const DME: any = typeof DeviceMotionEvent !== "undefined" ? DeviceMotionEvent : null;
+    if (!DME) return;
+    // iOS 13+ requires an explicit permission grant from a user gesture (the Start tap).
+    if (typeof DME.requestPermission === "function") {
+      try { if ((await DME.requestPermission()) !== "granted") return; } catch { return; }
+    }
+    gravRef.current = 9.8; inStepRef.current = false; lastStepTs.current = 0;
+    const handler = (e: DeviceMotionEvent) => {
+      if (pausedRef.current) return;
+      const a = e.accelerationIncludingGravity;
+      if (!a || a.x == null) return;
+      setStepsOn(true);
+      const mag = Math.sqrt((a.x || 0) ** 2 + (a.y || 0) ** 2 + (a.z || 0) ** 2);
+      gravRef.current = gravRef.current * 0.9 + mag * 0.1;   // low-pass gravity estimate
+      const dyn = mag - gravRef.current;                     // high-passed motion
+      const now = Date.now();
+      if (!inStepRef.current && dyn > 1.3 && now - lastStepTs.current > 300) {
+        inStepRef.current = true; lastStepTs.current = now;
+        setSteps((s) => s + 1);
+      } else if (dyn < 0.5) {
+        inStepRef.current = false;                           // reset for next step
+      }
+    };
+    motionHandler.current = handler;
+    window.addEventListener("devicemotion", handler);
+  }, []);
+  const stopSteps = useCallback(() => {
+    if (motionHandler.current) window.removeEventListener("devicemotion", motionHandler.current);
+    motionHandler.current = null;
+    setStepsOn(false);
   }, []);
 
   const onErr = useCallback((err: GeolocationPositionError) => {
@@ -203,11 +311,14 @@ function ActivityInner() {
       setGpsError("Geolocation isn't supported on this device/browser.");
       return;
     }
-    setPoints([]); setDistanceM(0); setElapsed(0); setCalories(0);
+    setPoints([]); setDistanceM(0); setElapsed(0); setCalories(0); setSteps(0);
     setAccuracy(null); setGpsError(null);
-    lastPt.current = null; distRef.current = 0;
+    lastPt.current = null; distRef.current = 0; fixesRef.current = 0;
     pausedRef.current = false; kindRef.current = kind;
     setPaused(false); setTracking(true);
+    stopLiveLocation();   // the recording watch below takes over
+    acquireWakeLock();
+    startSteps();
 
     watchId.current = navigator.geolocation.watchPosition(onPos, onErr, {
       enableHighAccuracy: true, maximumAge: 1000, timeout: 20000,
@@ -232,6 +343,7 @@ function ActivityInner() {
   async function finish() {
     if (watchId.current != null) { navigator.geolocation.clearWatch(watchId.current); watchId.current = null; }
     if (timer.current) { clearInterval(timer.current); timer.current = null; }
+    stopSteps(); releaseWakeLock();
     setTracking(false); setPaused(false); pausedRef.current = false;
 
     const distanceKm = distRef.current / 1000;
@@ -247,7 +359,8 @@ function ActivityInner() {
       } catch { /* ignore */ }
       finally { setSaving(false); }
     }
-    setPoints([]); setDistanceM(0); setElapsed(0); setCalories(0); setAccuracy(null);
+    setPoints([]); setDistanceM(0); setElapsed(0); setCalories(0); setAccuracy(null); setSteps(0);
+    startLiveLocation();  // resume the live "you are here" dot
   }
 
   async function remove(id: number) {
@@ -316,7 +429,45 @@ function ActivityInner() {
           <Stat icon={Flame} label="Calories" value={Math.round(calories).toString()} unit="kcal" accent={accent} />
         </div>
 
-        <RouteTrace points={points} accent={accent} className="h-56 w-full" />
+        {/* Steps — approximate, from the phone's motion sensor while the app is open */}
+        {tracking && kind !== "ride" && (
+          <div className="flex items-center justify-between rounded-2xl border border-ink/[.08] bg-paper-card px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <span className="grid h-9 w-9 place-items-center rounded-xl" style={{ background: `${accent}22`, color: accent }}>
+                <Footprints className="h-5 w-5" />
+              </span>
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">Steps</div>
+                <div className="text-[10px] text-ink-faint">
+                  {stepsOn ? "approx · counts while app is open" : "waiting for motion sensor…"}
+                </div>
+              </div>
+            </div>
+            <span className="text-2xl font-extrabold tabular-nums sm:text-3xl">{steps.toLocaleString()}</span>
+          </div>
+        )}
+
+        {/* Live map — real streets, live "you are here" dot + your route as you move (Strava-style) */}
+        <div className="relative">
+          <LiveMap points={points} here={here} accent={accent}
+            className="h-64 w-full overflow-hidden rounded-xl border border-ink/10 sm:h-80" />
+          {/* status pill */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3">
+            {locMsg ? (
+              <span className="flex items-center gap-1.5 rounded-full bg-ember-500/90 px-3 py-1.5 text-center text-xs font-medium text-white backdrop-blur">
+                <MapIcon className="h-3.5 w-3.5 shrink-0" /> {locMsg}
+              </span>
+            ) : points.length > 0 ? null : (
+              <span className="flex items-center gap-1.5 rounded-full bg-night/70 px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400" />
+                </span>
+                {here ? "Live location" : "Finding your location…"}
+              </span>
+            )}
+          </div>
+        </div>
 
         {gpsError && (
           <p className="rounded-xl bg-ember-500/12 px-3.5 py-2.5 text-sm text-ember-500">{gpsError}</p>
