@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Dumbbell, RefreshCw, Flame, PlayCircle, TrendingDown } from "lucide-react";
 import { RequireAuth } from "@/components/RequireAuth";
+import { ProfilePanel, Chip } from "@/components/ProfilePanel";
+import { useProfile } from "@/lib/useProfile";
 import { api, ApiError } from "@/lib/api";
-import { ACTIVITIES, GOALS, type Exercise, type WorkoutPlan } from "@/lib/types";
+import { type Exercise, type WorkoutPlan } from "@/lib/types";
 
 const DIFF_COLOR: Record<string, string> = {
   beginner: "bg-brand-500/12 text-brand-500 ring-brand-500/20",
@@ -13,20 +15,19 @@ const DIFF_COLOR: Record<string, string> = {
 };
 
 function WorkoutInner() {
-  const [profile, setProfile] = useState({ age: 25, gender: 0, weight: 70, height: 175, goal: 0, activity: 2, preference: "Gym" });
+  const { profile, setProfile, exists, loaded, save } = useProfile();
+  const [preference, setPreference] = useState("Gym");
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [activeDay, setActiveDay] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const set = (k: string, v: string) => setProfile((p) => ({ ...p, [k]: k === "preference" ? v : Number(v) }));
-
-  async function generate(e: React.FormEvent) {
-    e.preventDefault();
+  async function generate() {
     setBusy(true); setError(null);
     try {
-      const res = await api.post<WorkoutPlan>("/api/workout/generate", profile);
+      const res = await api.post<WorkoutPlan>("/api/workout/generate", { ...profile, preference });
       setPlan(res); setActiveDay(Object.keys(res.plan)[0] ?? null);
+      save(profile);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to generate workout.");
     } finally { setBusy(false); }
@@ -34,7 +35,7 @@ function WorkoutInner() {
 
   async function swap(day: string, idx: number, ex: Exercise) {
     try {
-      const res = await api.post<{ alternatives: Exercise[] }>("/api/workout/swap", { current: ex, preference: profile.preference });
+      const res = await api.post<{ alternatives: Exercise[] }>("/api/workout/swap", { current: ex, preference });
       const alt = res.alternatives?.find((a) => a.Exercise_Name !== ex.Exercise_Name);
       if (alt && plan) {
         const copy = structuredClone(plan);
@@ -57,27 +58,15 @@ function WorkoutInner() {
         <p className="text-ink-muted">Tailored to your goal and equipment.</p>
       </header>
 
-      <form onSubmit={generate} className="card grid gap-4 sm:grid-cols-3 animate-fade-up">
-        <div className="field"><label className="label">Age</label>
-          <input type="number" className="input" value={profile.age} min={1} max={120} onChange={(e) => set("age", e.target.value)} /></div>
-        <div className="field"><label className="label">Weight (kg)</label>
-          <input type="number" className="input" value={profile.weight} min={30} max={300} step="0.1" onChange={(e) => set("weight", e.target.value)} /></div>
-        <div className="field"><label className="label">Height (cm)</label>
-          <input type="number" className="input" value={profile.height} min={100} max={250} onChange={(e) => set("height", e.target.value)} /></div>
-        <div className="field"><label className="label">Goal</label>
-          <select className="input" value={profile.goal} onChange={(e) => set("goal", e.target.value)}>
-            {GOALS.map((g, i) => <option key={g} value={i}>{g}</option>)}</select></div>
-        <div className="field"><label className="label">Activity</label>
-          <select className="input" value={profile.activity} onChange={(e) => set("activity", e.target.value)}>
-            {ACTIVITIES.map((a, i) => <option key={a} value={i}>{a}</option>)}</select></div>
+      <ProfilePanel
+        profile={profile} setProfile={setProfile} exists={exists} loaded={loaded}
+        cta="Generate workout plan" busy={busy} error={error} onGenerate={generate}
+        summaryExtra={<Chip>{preference}</Chip>}
+      >
         <div className="field"><label className="label">Equipment</label>
-          <select className="input" value={profile.preference} onChange={(e) => set("preference", e.target.value)}>
+          <select className="input" value={preference} onChange={(e) => setPreference(e.target.value)}>
             <option value="Gym">Gym</option><option value="Home">Home</option></select></div>
-        <div className="sm:col-span-3">
-          <button className="btn-primary w-full py-3" disabled={busy}>{busy ? "Generating…" : "Generate workout plan"}</button>
-          {error && <p className="mt-2 rounded-lg bg-rose-500/12 px-3 py-2 text-sm text-rose-400">{error}</p>}
-        </div>
-      </form>
+      </ProfilePanel>
 
       {plan && activeDay && (
         <div className="space-y-6 animate-fade-up">

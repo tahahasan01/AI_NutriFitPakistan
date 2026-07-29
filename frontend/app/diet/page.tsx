@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Salad, RefreshCw, Flame, Utensils, Plus, Check } from "lucide-react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { MacroDonut, MacroLegend } from "@/components/MacroDonut";
+import { ProfilePanel } from "@/components/ProfilePanel";
+import { useProfile } from "@/lib/useProfile";
 import { api, ApiError } from "@/lib/api";
-import { ACTIVITIES, GOALS, type DietPlan, type Meal, type Profile } from "@/lib/types";
+import { type DietPlan, type Meal } from "@/lib/types";
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
 const MEAL_ICON: Record<string, string> = { Breakfast: "🌅", Lunch: "🍲", Dinner: "🌙", Snack: "🍎" };
@@ -23,7 +25,7 @@ function MacroBar({ label, value, color, max }: { label: string; value: number; 
 }
 
 function DietInner() {
-  const [profile, setProfile] = useState({ age: 25, gender: 0, weight: 70, height: 175, goal: 0, activity: 2 });
+  const { profile, setProfile, exists, loaded, save } = useProfile();
   const [plan, setPlan] = useState<DietPlan | null>(null);
   const [activeDay, setActiveDay] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -31,25 +33,13 @@ function DietInner() {
   const [swapping, setSwapping] = useState<string | null>(null);
   const [logged, setLogged] = useState<string | null>(null);
 
-  // Prefill from a saved profile if one exists.
-  useEffect(() => {
-    api.get<Profile>("/api/profile").then((p) => {
-      if (p.exists) setProfile({
-        age: p.age!, gender: p.gender!, weight: p.weight!, height: p.height!, goal: p.goal!, activity: p.activity!,
-      });
-    }).catch(() => {});
-  }, []);
-
-  const num = (k: string, v: string) => setProfile((p) => ({ ...p, [k]: Number(v) }));
-
-  async function generate(e: React.FormEvent) {
-    e.preventDefault();
+  async function generate() {
     setBusy(true); setError(null);
     try {
       const res = await api.post<DietPlan>("/api/diet/generate", { ...profile, allergies: [] });
       setPlan(res); setActiveDay(0);
       // Persist the profile so targets power the dashboard + food diary.
-      api.put("/api/profile", profile).catch(() => {});
+      save(profile);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to generate plan.");
     } finally { setBusy(false); }
@@ -93,32 +83,13 @@ function DietInner() {
           <span className="text-sm font-semibold uppercase tracking-wide">Diet plan</span>
         </div>
         <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Your 7-day meal plan</h1>
-        <p className="text-ink-muted">Enter your details and we’ll build calorie-matched meals.</p>
+        <p className="text-ink-muted">Calorie-matched desi meals for your goal.</p>
       </header>
 
-      <form onSubmit={generate} className="card grid gap-4 sm:grid-cols-3 animate-fade-up">
-        <div className="field"><label className="label">Age</label>
-          <input type="number" className="input" value={profile.age} min={1} max={120} onChange={(e) => num("age", e.target.value)} /></div>
-        <div className="field"><label className="label">Gender</label>
-          <select className="input" value={profile.gender} onChange={(e) => num("gender", e.target.value)}>
-            <option value={0}>Male</option><option value={1}>Female</option></select></div>
-        <div className="field"><label className="label">Weight (kg)</label>
-          <input type="number" className="input" value={profile.weight} min={30} max={300} step="0.1" onChange={(e) => num("weight", e.target.value)} /></div>
-        <div className="field"><label className="label">Height (cm)</label>
-          <input type="number" className="input" value={profile.height} min={100} max={250} onChange={(e) => num("height", e.target.value)} /></div>
-        <div className="field"><label className="label">Goal</label>
-          <select className="input" value={profile.goal} onChange={(e) => num("goal", e.target.value)}>
-            {GOALS.map((g, i) => <option key={g} value={i}>{g}</option>)}</select></div>
-        <div className="field"><label className="label">Activity</label>
-          <select className="input" value={profile.activity} onChange={(e) => num("activity", e.target.value)}>
-            {ACTIVITIES.map((a, i) => <option key={a} value={i}>{a}</option>)}</select></div>
-        <div className="sm:col-span-3">
-          <button className="btn-primary w-full py-3" disabled={busy}>
-            {busy ? "Generating…" : "Generate meal plan"}
-          </button>
-          {error && <p className="mt-2 rounded-lg bg-rose-500/12 px-3 py-2 text-sm text-rose-400">{error}</p>}
-        </div>
-      </form>
+      <ProfilePanel
+        profile={profile} setProfile={setProfile} exists={exists} loaded={loaded}
+        cta="Generate meal plan" busy={busy} error={error} onGenerate={generate}
+      />
 
       {plan && (
         <div className="space-y-6 animate-fade-up">
@@ -213,7 +184,7 @@ function DietInner() {
       {!plan && !busy && (
         <div className="card grid place-items-center py-16 text-center text-ink-muted">
           <Utensils className="h-10 w-10 text-ink-faint" />
-          <p className="mt-3">Fill in your details above to generate your plan.</p>
+          <p className="mt-3">Tap <span className="font-semibold text-ink">Generate</span> above to build your meals.</p>
         </div>
       )}
     </div>
