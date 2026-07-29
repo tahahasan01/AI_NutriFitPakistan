@@ -250,12 +250,14 @@ class DietPlanDL:
         )
 
     def _math_meal_splits(self, target_cal):
-        # classic 25/35/30/10 -> returns absolute per-meal calories
+        # Balanced 25/30/30/15 so no single meal is oversized (the old 35% lunch
+        # produced ~900 kcal single-dish lunches on higher-calorie plans) and the
+        # snack is a real mini-meal rather than an afterthought.
         return (
             target_cal * 0.25,
-            target_cal * 0.35,
             target_cal * 0.30,
-            target_cal * 0.10,
+            target_cal * 0.30,
+            target_cal * 0.15,
         )
 
     def _teacher_score_food(self, goal, meal_target_cal, row):
