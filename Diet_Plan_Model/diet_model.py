@@ -841,67 +841,92 @@ class DietPlanDL:
                 pool = get_foods(mtype, snack=(mtype == "Snack"))
                 if len(pool) == 0:
                     continue
-                tcal = meal_targets[mtype]
+                tcal = float(meal_targets[mtype] or 0)
                 # This slot's fair share of the *remaining* macro budget.
                 frac = (tcal / rem_cal) if rem_cal > 0 else 1.0
                 ideal_p, ideal_c, ideal_f = rem_p * frac, rem_c * frac, rem_f * frac
 
-                def _macro_fit(r):
-                    fp_ = float(r.get("Protein (g)", r.get("Protein", 0)) or 0)
-                    fc_ = float(r.get("Carbohydrates (g)", r.get("Carbohydrates", 0)) or 0)
-                    ff_ = float(r.get("Fat (g)", 0) or 0)
-                    c100 = ensure_positive_calories(float(r.get("Calories", 0) or 0), fp_, fc_, ff_)
-                    if c100 <= 0:
-                        return -1e9
-                    ratio = tcal / c100
-                    mp, mc, mf = fp_ * ratio, fc_ * ratio, ff_ * ratio
-                    # normalized squared distance from this slot's ideal macro fill
-                    dist = ((mp - ideal_p) / max(1.0, p)) ** 2 \
-                         + ((mc - ideal_c) / max(1.0, c)) ** 2 \
-                         + ((mf - ideal_f) / max(1.0, f)) ** 2
-                    qty_ = ratio * 100.0            # discourage unrealistic portions
-                    if qty_ > 350:
-                        dist += ((qty_ - 350) / 120.0) ** 2
-                    return -dist
+                def pick_sized(pool_df, cal_target, ip, ic, iff):
+                    """Pick the best macro-fit food not yet used and size it to cal_target."""
+                    cand = pool_df[~pool_df["Food Name"].isin(used)]
+                    if len(cand) == 0:
+                        return None
 
-                pool = pool.copy()
-                pool["__score__"] = pool.apply(_macro_fit, axis=1)
-                pool = pool.sort_values("__score__", ascending=False)
-                pool = pool[~pool["Food Name"].isin(used)]
-                if len(pool) == 0:
+                    def _fit(r):
+                        fp_ = float(r.get("Protein (g)", r.get("Protein", 0)) or 0)
+                        fc_ = float(r.get("Carbohydrates (g)", r.get("Carbohydrates", 0)) or 0)
+                        ff_ = float(r.get("Fat (g)", 0) or 0)
+                        c100_ = ensure_positive_calories(float(r.get("Calories", 0) or 0), fp_, fc_, ff_)
+                        if c100_ <= 0:
+                            return -1e9
+                        ratio = cal_target / c100_
+                        mp, mc, mf = fp_ * ratio, fc_ * ratio, ff_ * ratio
+                        dist = ((mp - ip) / max(1.0, p)) ** 2 \
+                             + ((mc - ic) / max(1.0, c)) ** 2 \
+                             + ((mf - iff) / max(1.0, f)) ** 2
+                        q_ = ratio * 100.0            # discourage unrealistic portions
+                        if q_ > 350:
+                            dist += ((q_ - 350) / 120.0) ** 2
+                        return -dist
+
+                    cand = cand.copy()
+                    cand["__score__"] = cand.apply(_fit, axis=1)
+                    sel = cand.sort_values("__score__", ascending=False).iloc[0]
+                    fp_ = float(sel.get("Protein (g)", sel.get("Protein", 0)) or 0)
+                    fc_ = float(sel.get("Carbohydrates (g)", sel.get("Carbohydrates", 0)) or 0)
+                    ff_ = float(sel.get("Fat (g)", 0) or 0)
+                    c100_ = ensure_positive_calories(float(sel.get("Calories", 0) or 0), fp_, fc_, ff_)
+                    q = clamp_qty((cal_target / c100_) * 100.0)
+                    pg, cg, fg = round(fp_ * q / 100.0, 1), round(fc_ * q / 100.0, 1), round(ff_ * q / 100.0, 1)
+                    k = round(c100_ * q / 100.0, 1)
+                    if k <= 0:
+                        k = round(kcal_from_macros(pg, cg, fg), 1)
+                    return {
+                        "name": sel.get("Food Name", "Unknown Meal"),
+                        "quantity": round(q, 1), "calories": k,
+                        "protein": pg, "carbs": cg, "fat": fg,
+                        "sugar": round(float(sel.get("Sugars (g)", 0) or 0) * q / 100.0, 1),
+                        "fiber": round(float(sel.get("Fiber (g)", 0) or 0) * q / 100.0, 1),
+                    }
+
+                # High-calorie main meals are composed from TWO foods so no single dish
+                # balloons to ~1000+ kcal / 500 g (the problem on very-active/gain plans).
+                # Snacks and modest meals stay a single item.
+                items = []
+                if mtype != "Snack" and tcal > 700:
+                    primary = pick_sized(pool, tcal * 0.6, ideal_p * 0.6, ideal_c * 0.6, ideal_f * 0.6)
+                    if primary:
+                        used.add(primary["name"]); items.append(primary)
+                        rest = tcal - primary["calories"]
+                        if rest > 120:
+                            secondary = pick_sized(pool, rest, ideal_p * 0.4, ideal_c * 0.4, ideal_f * 0.4)
+                            if secondary:
+                                used.add(secondary["name"]); items.append(secondary)
+                else:
+                    single = pick_sized(pool, tcal, ideal_p, ideal_c, ideal_f)
+                    if single:
+                        used.add(single["name"]); items.append(single)
+
+                if not items:
                     continue
-                sel = pool.iloc[0]
 
-                # calories per 100g with fallback
-                fp = float(sel.get("Protein (g)", sel.get("Protein", 0)) or 0)
-                fc = float(sel.get("Carbohydrates (g)", sel.get("Carbohydrates", 0)) or 0)
-                ff = float(sel.get("Fat (g)", 0) or 0)
-                cal100_raw = float(sel.get("Calories", 0) or 0)
-                cal100 = ensure_positive_calories(cal100_raw, fp, fc, ff)
-
-                tcal = meal_targets[mtype]
-                qty = clamp_qty((tcal / cal100) * 100.0)
-
-                protein_g = round(fp * qty / 100.0, 1)
-                carbs_g   = round(fc * qty / 100.0, 1)
-                fat_g     = round(ff * qty / 100.0, 1)
-
-                kcal = cal100 * qty / 100.0
-                kcal_final = round(kcal, 1)
-                if kcal_final <= 0:
-                    kcal_final = round(kcal_from_macros(protein_g, carbs_g, fat_g), 1)
-
+                # Merge item(s) into one meal slot (keeps the fixed 4-slot structure the
+                # UI labels Breakfast/Lunch/Dinner/Snack by index).
+                protein_g = round(sum(it["protein"] for it in items), 1)
+                carbs_g   = round(sum(it["carbs"] for it in items), 1)
+                fat_g     = round(sum(it["fat"] for it in items), 1)
+                kcal_final = round(sum(it["calories"] for it in items), 1)
                 day_meals.append({
-                    "name": sel.get("Food Name", "Unknown Meal"),
-                    "quantity": round(qty, 1),
+                    "name": " + ".join(it["name"] for it in items),
+                    "quantity": round(sum(it["quantity"] for it in items), 1),
                     "calories": kcal_final,
                     "protein": protein_g,
                     "carbs": carbs_g,
                     "fat": fat_g,
-                    "sugar": round(float(sel.get("Sugars (g)", 0) or 0) * qty / 100.0, 1),
-                    "fiber": round(float(sel.get("Fiber (g)", 0) or 0) * qty / 100.0, 1)
+                    "sugar": round(sum(it["sugar"] for it in items), 1),
+                    "fiber": round(sum(it["fiber"] for it in items), 1),
+                    "items": items,
                 })
-                used.add(day_meals[-1]["name"])
                 # Deduct what this meal delivered so later meals compensate.
                 rem_p -= protein_g
                 rem_c -= carbs_g

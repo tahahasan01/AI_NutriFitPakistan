@@ -109,9 +109,16 @@ def _process_and_summarize(plan_data: Dict[str, Any], allergies: List[str]) -> D
             # meal's calories/macros (per-100g x qty/100). Keep them CONSISTENT:
             # display the actual quantity, do not override it to a fixed value.
             qty = int(round(float(m.get("quantity", 100))))
-            base = _strip_gram_suffix(m.get("name", ""))
             m["quantity"] = qty
-            m["name"] = f"{base} — {qty} g"
+            items = m.get("items")
+            if items and len(items) > 1:
+                # Composed meal: show each component with its own grams.
+                m["name"] = " + ".join(
+                    f"{_strip_gram_suffix(it.get('name',''))} ({int(round(float(it.get('quantity',0))))} g)"
+                    for it in items
+                )
+            else:
+                m["name"] = f"{_strip_gram_suffix(m.get('name', ''))} — {qty} g"
             meals.append(m)
         # Defensive: guarantee at least 3 items (the model normally returns 4).
         while len(meals) < 3:
