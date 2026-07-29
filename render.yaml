@@ -1,19 +1,49 @@
-# Render.com blueprint for the FastAPI backend (one option among many hosts).
-# The Next.js frontend deploys separately on Vercel (set BACKEND_URL there to
-# this service's public URL).
+# Render.com blueprint — NutriFit FastAPI backend (free tier).
+#
+# Deploy:
+#   1. Push this repo to GitHub.
+#   2. Render dashboard → New → Blueprint → pick this repo → Apply.
+#   3. After it builds, open the service → Environment → set GROQ_API_KEY.
+#   4. Point the frontend (Vercel) at the service's public URL.
+#
+# The Next.js frontend deploys separately (Vercel). With the Next proxy the web
+# app is same-origin, so CORS_ORIGINS can stay empty; set it only for direct
+# cross-origin callers (e.g. the future Capacitor mobile app).
+
 services:
   - type: web
     name: nutrifit-api
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: .
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: "pip install -r backend/requirements.txt"
+    # Free tier = 512 MB RAM. pandas+numpy ≈ 200 MB per worker → run ONE worker.
+    startCommand: "gunicorn backend.main:app -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:$PORT --timeout 120"
     healthCheckPath: /api/health
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: NUTRIFIT_ENV
         value: production
       - key: NUTRIFIT_SECRET
-        generateValue: true      # Render generates a strong secret
+        generateValue: true          # Render generates a strong secret at create time
+      - key: WEB_CONCURRENCY
+        value: "1"                   # belt-and-suspenders single worker for 512 MB
       - key: DATABASE_URL
-        sync: false              # set to your managed MySQL/Postgres URL
+        fromDatabase:
+          name: nutrifit-db
+          property: connectionString  # internal postgres:// URL (auto-normalized to psycopg v3)
+      - key: GROQ_API_KEY
+        sync: false                  # paste your Groq key in the Render dashboard
       - key: CORS_ORIGINS
-        sync: false              # e.g. https://your-app.vercel.app (only if NOT using the Next proxy)
+        sync: false                  # optional: https://your-app.vercel.app,https://nutrifit.pk
+
+databases:
+  # NOTE: Render's FREE Postgres is deleted after 30 days. For long-term free
+  # persistence, create a Neon project (neon.tech) and replace DATABASE_URL above
+  # with its connection string — no code change needed.
+  - name: nutrifit-db
+    plan: free
+    databaseName: nutrifit
+    user: nutrifit
+    region: oregon
