@@ -13,7 +13,7 @@ import { Avatar } from "@/components/Avatar";
 import { usePrefs } from "@/components/PrefsProvider";
 import { useAuth } from "@/app/providers";
 
-const APP_ROUTES = ["/dashboard", "/coach", "/log", "/diet", "/workout", "/progress", "/settings"];
+const APP_ROUTES = ["/dashboard", "/coach", "/log", "/diet", "/workout", "/activity", "/progress", "/settings"];
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

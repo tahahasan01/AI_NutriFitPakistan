@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,27 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "./providers";
 import { MacroDonut, MacroLegend } from "@/components/MacroDonut";
-
-// Reveal on scroll — fades + lifts content into view.
-function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setShown(true); io.disconnect(); }
-    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ease-[cubic-bezier(.16,1,.3,1)] ${shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"} ${className}`}>
-      {children}
-    </div>
-  );
-}
+import { Counter, FadeInUp, motion, staggerContainer, staggerItem } from "@/components/motion";
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -173,13 +153,16 @@ export default function HomePage() {
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-400/10 blur-3xl" />
         <div className="relative grid grid-cols-2 gap-y-10 gap-x-6 sm:grid-cols-4">
           {[
-            ["150+", "Desi & global foods"], ["7-day", "Calorie-matched plans"],
-            ["6-day", "Home or gym splits"], ["±6%", "vs USDA references"],
-          ].map(([v, l], i) => (
-            <div key={l} className="relative text-center sm:text-left">
+            { to: 150, prefix: "", suffix: "+", label: "Desi & global foods" },
+            { to: 7, prefix: "", suffix: "-day", label: "Calorie-matched plans" },
+            { to: 6, prefix: "", suffix: "-day", label: "Home or gym splits" },
+            { to: 6, prefix: "±", suffix: "%", label: "vs USDA references" },
+          ].map((s, i) => (
+            <div key={s.label} className="relative text-center sm:text-left">
               {i > 0 && <span aria-hidden className="absolute -left-3 top-1 hidden h-12 w-px bg-white/10 sm:block" />}
-              <div className="font-display text-4xl font-bold text-brand-400 sm:text-5xl">{v}</div>
-              <div className="mt-2 text-sm text-ink-muted">{l}</div>
+              <Counter to={s.to} prefix={s.prefix} suffix={s.suffix}
+                className="block font-display text-4xl font-bold text-brand-400 sm:text-5xl" />
+              <div className="mt-2 text-sm text-ink-muted">{s.label}</div>
             </div>
           ))}
         </div>
@@ -194,7 +177,8 @@ export default function HomePage() {
             Most apps stop at a number. NutriFit turns your goal into meals, workouts, and a feedback loop.
           </p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-8% 0px" }}>
           {[
             { icon: Target, title: "TDEE-based targets", desc: "Mifflin–St Jeor with correct Atwater macros (protein/carb 4, fat 9 kcal/g)." },
             { icon: Salad, title: "Desi-first meals", desc: "Biryani, daal, karahi, chaat — real Pakistani cuisine, portioned to your target." },
@@ -202,12 +186,13 @@ export default function HomePage() {
             { icon: Dumbbell, title: "Home & gym workouts", desc: "6-day splits that match your equipment, with per-exercise calorie burn." },
             { icon: LineChart, title: "Progress & plateau", desc: "Weekly weight tracking with trend charts and automatic plateau alerts." },
             { icon: ShieldCheck, title: "Private & secure", desc: "Hashed passwords, session auth, and your data never leaves your account." },
-          ].map((f, i) => (
-            <Reveal key={f.title} delay={(i % 3) * 90}>
+          ].map((f) => (
+            <motion.div key={f.title} variants={staggerItem}
+              whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 20 } }}>
               <Feature icon={f.icon} tint="bg-brand-400/10 text-brand-400" title={f.title} desc={f.desc} />
-            </Reveal>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       {/* ---------- HOW IT WORKS ---------- */}

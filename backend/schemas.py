@@ -181,3 +181,18 @@ class SwapFeedbackIn(BaseModel):
     food_name: str = Field(min_length=1, max_length=160)
     meal_type: Optional[str] = None
     signal: str = Field(default="swap_out")
+
+
+# ---------- Activity (GPS tracking) ----------
+class ActivityIn(BaseModel):
+    kind: str = Field(default="walk")  # walk | run | ride
+    distance_km: float = Field(ge=0, le=500)
+    duration_s: int = Field(ge=0, le=86400)
+    calories: float = Field(ge=0, le=20000)
+    route: Optional[List[List[float]]] = None  # [[lat, lng], ...]
+
+    @field_validator("kind")
+    @classmethod
+    def _kind(cls, v: str) -> str:
+        norm = (v or "").strip().lower()
+        return norm if norm in {"walk", "run", "ride"} else "walk"

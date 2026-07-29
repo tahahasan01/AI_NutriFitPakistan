@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, CalendarDays, Salad, Dumbbell, LineChart, Settings, LogOut, Leaf, X, Sparkles,
+  LayoutDashboard, CalendarDays, Salad, Dumbbell, LineChart, Settings, LogOut, Leaf, X, Sparkles, Navigation,
 } from "lucide-react";
 import { useAuth } from "@/app/providers";
 import { usePrefs } from "@/components/PrefsProvider";
@@ -16,6 +16,7 @@ const links = [
   { href: "/log", label: "Today", icon: CalendarDays },
   { href: "/diet", label: "Diet plan", icon: Salad },
   { href: "/workout", label: "Workout", icon: Dumbbell },
+  { href: "/activity", label: "Track", icon: Navigation },
   { href: "/progress", label: "Progress", icon: LineChart },
 ];
 
