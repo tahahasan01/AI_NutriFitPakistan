@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Sparkles, Send, X, Maximize2, Check, Flame } from "lucide-react";
@@ -35,6 +36,7 @@ const MD = {
 };
 
 export function FloatingCoach() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [convoId, setConvoId] = useState<number | null>(null);
@@ -65,6 +67,10 @@ export function FloatingCoach() {
       setLoading(false);
     }
   }
+
+  // The dashboard already has the "Ask your AI coach" hero card + a Coach tab,
+  // so the floating button would be redundant (and overlap the macro card there).
+  if (pathname === "/dashboard") return null;
 
   return (
     <>

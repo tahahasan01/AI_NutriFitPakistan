@@ -259,9 +259,8 @@ function DashInner() {
   return (
     <div className="space-y-6">
       <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-        <span className="eyebrow">Dashboard</span>
-        <h1 className="mt-2 font-display text-3xl font-bold sm:text-5xl">{greeting}, <span className="text-brand-400">{name}</span>.</h1>
-        <p className="mt-2 text-ink-muted">Here's your day at a glance — log, plan, and stay on track.</p>
+        <h1 className="font-display text-2xl font-bold sm:text-4xl">{greeting}, <span className="text-brand-400">{name}</span>.</h1>
+        <p className="mt-1 text-sm text-ink-muted sm:text-base">Here's your day at a glance.</p>
       </motion.header>
 
       <CoachAsk />
@@ -271,13 +270,12 @@ function DashInner() {
         <div className="space-y-6 lg:col-span-2">
           <TodayCard s={s} />
           <WeeklyStrip s={s} />
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-3">
             {ACTIONS.map((c) => (
-              <Link key={c.href} href={c.href} className="card card-hover group">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-400/10 text-brand-400"><c.icon className="h-5 w-5" /></span>
-                <div className="mt-3 font-semibold">{c.title}</div>
-                <div className="text-sm text-ink-muted">{c.desc}</div>
-                <ArrowRight className="mt-2 h-4 w-4 text-ink-faint transition group-hover:translate-x-1 group-hover:text-brand-400" />
+              <Link key={c.href} href={c.href}
+                className="group flex flex-col items-center gap-2 rounded-2xl border border-ink/[.08] bg-paper-card p-3.5 text-center shadow-soft transition hover:-translate-y-0.5 hover:border-brand-400/25">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-400/10 text-brand-400"><c.icon className="h-5 w-5" /></span>
+                <span className="text-xs font-semibold sm:text-sm">{c.title}</span>
               </Link>
             ))}
           </div>
